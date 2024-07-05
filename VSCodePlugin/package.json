@@ -1,0 +1,23 @@
+{
+    "name": "defiset-extension",
+    "displayName": "Defiset Extension",
+    "description": "An extension for AI generated frontend components viewer.",
+    "version": "0.0.1",
+    "publisher": "your-publisher-name",
+    "engines": {
+        "vscode": "^1.56.0"
+    },
+    "activationEvents": [
+        "onCommand:defiset.openViewer"
+    ],
+    "main": "extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "defiset.openViewer",
+                "title": "Open Defiset Viewer"
+            }
+        ]
+    },
+    "dependencies": {}
+}

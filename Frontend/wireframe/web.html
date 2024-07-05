@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defiset - AI Generated Frontend Components Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #1F1F2E;
+            color: #E0E0E0;
+        }
+
+        .header {
+            background-color: #262636;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #FC814A;
+        }
+
+        .header img {
+            height: 50px;
+            margin-right: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            color: white;
+        }
+
+        .top-bar {
+            display: flex;
+            padding: 10px 20px;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #444;
+            background-color: #262636;
+        }
+
+        .top-bar input[type="file"] {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #E0E0E0;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .top-bar input[type="text"] {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            flex-grow: 1;
+            margin: 0 10px;
+            background-color: #333;
+            color: #E0E0E0;
+        }
+
+        .top-bar button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .generate-btn {
+            background-color: #FC814A;
+            color: white;
+        }
+
+        .generate-btn:hover {
+            background-color: #E56E31;
+        }
+
+        .upload-btn {
+            background-color: #25C2A0;
+            color: white;
+        }
+
+        .upload-btn:hover {
+            background-color: #1EA687;
+        }
+
+        .export-btn {
+            background-color: #FFD700;
+            color: white;
+        }
+
+        .export-btn:hover {
+            background-color: #E6C200;
+        }
+
+        .history-btn {
+            background-color: #888;
+            color: white;
+        }
+
+        .history-btn:hover {
+            background-color: #666;
+        }
+
+        .preview-btn {
+            background-color: #888;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .preview-btn:hover {
+            background-color: #666;
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            background-color: #1F1F2E;
+        }
+
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #444;
+        }
+
+        .editor-container h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #E0E0E0;
+        }
+
+        .editor {
+            flex: 1;
+            margin-bottom: 20px;
+            background-color: #262636;
+            border: 1px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .monaco-editor {
+            flex: 1;
+        }
+
+        .preview {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .preview-content {
+            flex: 1;
+            background-color: #262636;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 20px;
+            color: #E0E0E0;
+            overflow: hidden;
+        }
+
+        .footer {
+            background-color: #262636;
+            padding: 10px;
+            text-align: right;
+            border-top: 2px solid #FC814A;
+            color: white;
+            font-size: 12px;
+        }
+
+        .footer span {
+            margin-right: 20px;
+        }
+
+        /* History Panel */
+        .history-panel {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            height: 100%;
+            width: 300px;
+            background-color: #262636;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            transition: right 0.3s;
+            z-index: 1000;
+        }
+
+        .history-panel.open {
+            right: 0;
+        }
+
+        .history-panel h2 {
+            margin: 20px;
+            font-size: 18px;
+            color: #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-panel .close-btn {
+            background: none;
+            border: none;
+            color: #E0E0E0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .history-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .history-list li {
+            padding: 10px 20px;
+            border-bottom: 1px solid #444;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .history-list li:hover {
+            background-color: #333;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #1F1F2E;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .close {
+            color: #aaa;
+            align-self: flex-end;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: white;
+            text-decoration: none;
+        }
+
+        .modal-editor {
+            flex: 1;
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="https://kaiten.ai/wp-content/uploads/2024/04/logo-footer-100x100.png" alt="Logo">
+        <h1>Defiset</h1>
+    </div>
+
+    <div class="top-bar">
+        <input type="file" id="fileInput">
+        <button class="preview-btn" id="filePreviewButton">Preview</button>
+        <input type="text" id="textInput" placeholder="add your custom instruction here">
+        <button class="generate-btn" id="generateButton">Generate</button>
+        <button class="export-btn" id="exportButton">Export</button>
+        <button class="upload-btn" id="uploadButton">Upload to IPFS</button>
+        <button class="history-btn" id="historyButton">History</button>
+    </div>
+
+    <div class="content">
+        <div class="editor-container">
+            <h2>HTML Code</h2>
+            <div class="editor" id="htmlEditor"></div>
+            <h2>JavaScript Code</h2>
+            <div class="editor" id="jsEditor"></div>
+        </div>
+        <div class="preview">
+            <div class="preview-content" id="previewContent"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>Version ID: 1.0.0</span>
+    </div>
+
+    <div class="history-panel" id="historyPanel">
+        <h2>History <button class="close-btn" id="closeHistoryButton">&times;</button></h2>
+        <ul class="history-list" id="historyList"></ul>
+    </div>
+
+    <div id="filePreviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <div class="modal-editor" id="modalEditor"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            var htmlEditor = monaco.editor.create(document.getElementById('htmlEditor'), {
+                value: '',
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+
+            var jsEditor = monaco.editor.create(document.getElementById('jsEditor'), {
+                value: '',
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+
+            var modalEditor = monaco.editor.create(document.getElementById('modalEditor'), {
+                value: '',
+                language: 'plaintext',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+
+            var history = [];
+
+            function updatePreview() {
+                var htmlCode = htmlEditor.getValue();
+                var jsCode = jsEditor.getValue();
+                var previewFrame = document.createElement('iframe');
+                previewFrame.style.width = '100%';
+                previewFrame.style.height = '100%';
+                previewFrame.style.border = 'none';
+                document.getElementById('previewContent').innerHTML = '';
+                document.getElementById('previewContent').appendChild(previewFrame);
+
+                var previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                previewDoc.open();
+                previewDoc.write('<html><head><style>body { background-color: #262636; color: #E0E0E0; margin: 0; padding: 20px; font-family: "Inter", sans-serif; }</style></head><body>' + htmlCode + '<script>' + jsCode + '<\/script></body></html>');
+                previewDoc.close();
+            }
+
+            htmlEditor.onDidChangeModelContent(updatePreview);
+            jsEditor.onDidChangeModelContent(updatePreview);
+
+            document.getElementById('generateButton').onclick = function() {
+                fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_OPENAI_API_KEY' // Replace with your OpenAI API key
+                    },
+                    body: JSON.stringify({
+                        prompt: 'PROMPT DI PROVA - RISPONDI SEMPRE con un JSON {html:"HTML", js:"JS"}',
+                        max_tokens: 150
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var jsonResponse = JSON.parse(data.choices[0].text.trim());
+                    htmlEditor.setValue(jsonResponse.html);
+                    jsEditor.setValue(jsonResponse.js);
+
+                    history.push({html: jsonResponse.html, js: jsonResponse.js});
+                    updateHistoryList();
+                })
+                .catch(error => console.error('Error:', error));
+            };
+
+            document.getElementById('exportButton').onclick = function() {
+                var zip = new JSZip();
+                var uploadedFile = document.getElementById('fileInput').files[0];
+
+                if (uploadedFile) {
+                    zip.file(uploadedFile.name, uploadedFile);
+                }
+
+                zip.file("code.html", htmlEditor.getValue());
+                zip.file("code.js", jsEditor.getValue());
+
+                zip.generateAsync({ type: "blob" }).then(function(content) {
+                    saveAs(content, "code.zip");
+                });
+            };
+
+            document.getElementById('uploadButton').onclick = async function() {
+                var zip = new JSZip();
+                var uploadedFile = document.getElementById('fileInput').files[0];
+
+                if (uploadedFile) {
+                    zip.file(uploadedFile.name, uploadedFile);
+                }
+
+                zip.file("code.html", htmlEditor.getValue());
+                zip.file("code.js", jsEditor.getValue());
+
+                var zipBlob = await zip.generateAsync({ type: "blob" });
+
+                var formData = new FormData();
+                formData.append("file", zipBlob, "code.zip");
+
+                fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+                    method: "POST",
+                    headers: {
+                        'Authorization': 'Bearer YOUR_PINATA_JWT',  // Replace with your Pinata JWT
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("IPFS Hash:", data.IpfsHash);
+                    alert("File uploaded to IPFS with hash: " + data.IpfsHash);
+                })
+                .catch(error => {
+                    console.error("Error uploading to IPFS:", error);
+                    alert("Error uploading to IPFS.");
+                });
+            };
+
+            document.getElementById('historyButton').onclick = function() {
+                var historyPanel = document.getElementById('historyPanel');
+                historyPanel.classList.toggle('open');
+            };
+
+            document.getElementById('closeHistoryButton').onclick = function() {
+                var historyPanel = document.getElementById('historyPanel');
+                historyPanel.classList.remove('open');
+            };
+
+            document.getElementById('filePreviewButton').onclick = function() {
+                var fileInput = document.getElementById('fileInput');
+                var file = fileInput.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        modalEditor.setValue(e.target.result);
+                        var modal = document.getElementById('filePreviewModal');
+                        modal.style.display = "block";
+                    };
+                    reader.readAsText(file);
+                } else {
+                    alert("No file selected.");
+                }
+            };
+
+            document.getElementById('closeModal').onclick = function() {
+                var modal = document.getElementById('filePreviewModal');
+                modal.style.display = "none";
+            };
+
+            window.onclick = function(event) {
+                var modal = document.getElementById('filePreviewModal');
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            };
+
+            function updateHistoryList() {
+                var historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                history.forEach((item, index) => {
+                    var listItem = document.createElement('li');
+                    listItem.textContent = `Generation ${index + 1}`;
+                    listItem.onclick = function() {
+                        htmlEditor.setValue(item.html);
+                        jsEditor.setValue(item.js);
+                    };
+                    historyList.appendChild(listItem);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

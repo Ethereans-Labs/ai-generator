@@ -144,7 +144,7 @@ body {
   filter: invert(0.3);
 }
 .active-file{
-  border-bottom: 1px solid #D31B5C;
+  border-bottom: 1px solid #FDC740;
 }
 .preview-area-group h3{
   color: #fff;
@@ -165,7 +165,7 @@ body {
   margin: 0px;
   position: absolute;
   right: 10px;
-  top:0px;
+  top:-2px;
 }
 .preview-background-color-pallet li{
   display: inline-block;
@@ -235,6 +235,29 @@ body {
   justify-content: space-around;
   align-items: center;
 }
+.preview-upload-button{
+  position: absolute;
+    right: 330px;
+    top: -2px;
+    background: transparent;
+    border: 1px solid #898989;
+    color: #898989;
+    padding: 4px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.preview-export-button{
+  position: absolute;
+    right: 240px;
+    top: -2px;
+    background: #FDC740;
+    border: 1px solid #FDC740;
+    color: #000;
+    padding: 4px 20px;
+    font-weight: bold;
+    border-radius: 6px;
+   cursor: pointer;
+}
 
 .preview-area-output.pallet1{
   background: rgb(217, 182, 152);
@@ -273,4 +296,22 @@ body {
 .editor-file-nav{
   width: 100%; 
   display: flex
+}
+.navigation-tree-footer{
+  position: absolute;
+  bottom: 0px;
+  width: calc(100% - 40px);
+  background-color: #FDC740;
+  padding: 10px 20px;
+  color: #000;
+}
+.navigation-tree-footer ul{
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  justify-content: space-between;
+}
+.navigation-tree-footer ul li{
+  display: inline-block;
+  font-size: 12px;
 }

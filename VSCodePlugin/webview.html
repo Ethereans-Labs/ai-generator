@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defiset - AI Generated Frontend Components Viewer</title>
+    <style>
+        /* Add your styles here */
+    </style>
+</head>
+<body>
+    <div>
+        <input type="file" id="fileInput">
+        <button id="filePreviewButton">Preview</button>
+        <input type="text" id="textInput" placeholder="add your custom instruction here">
+        <button id="generateButton">Generate</button>
+        <button id="exportButton">Export</button>
+        <button id="uploadButton">Upload to IPFS</button>
+        <button id="historyButton">History</button>
+    </div>
+    <div id="content">
+        <div id="htmlEditor" style="height: 50vh;"></div>
+        <div id="jsEditor" style="height: 50vh;"></div>
+        <div id="previewContent" style="height: 50vh;"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs/loader.min.js"></script>
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            const htmlEditor = monaco.editor.create(document.getElementById('htmlEditor'), {
+                value: '',
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+
+            const jsEditor = monaco.editor.create(document.getElementById('jsEditor'), {
+                value: '',
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+
+            document.getElementById('generateButton').onclick = function() {
+                const textInput = document.getElementById('textInput').value;
+                vscode.postMessage({
+                    command: 'generate',
+                    text: textInput
+                });
+            };
+
+            window.addEventListener('message', event => {
+                const message = event.data;
+                switch (message.command) {
+                    case 'setGeneratedCode':
+                        htmlEditor.setValue(message.html);
+                        jsEditor.setValue(message.js);
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

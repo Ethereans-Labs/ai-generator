@@ -1,5 +1,5 @@
 body {
-  background-color: rgb(15,15,15);
+  background-color: rgb(15, 15, 15);
 }
 
 .App-logo {
@@ -21,11 +21,13 @@ body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
-.editor-tool{
+
+.editor-tool {
   background-color: #1b1b1b;
   border: 2px solid #4c4c4c;
   padding: 10px 20px 10px 20px;
@@ -34,54 +36,64 @@ body {
   height: 40px;
   width: 30%;
 }
-.file-navbar{
+
+.file-navbar {
   width: 100%;
   margin-left: 0px;
   border-bottom: 1px solid #303030;
 }
-.file-navbar ul{
+
+.file-navbar ul {
   margin-top: 10px;
   margin-left: 10px;
   padding-left: 0px;
   margin-bottom: 10px;
 }
-.file-navbar ul li{
+
+.file-navbar ul li {
   display: inline-block;
   background-color: #262626;
   margin-right: 20px;
-  color:#afafaf;
+  color: #afafaf;
   padding: 5px 20px 5px 20px;
   border-radius: 5px;
   cursor: pointer;
 }
-.preview-area-group{
+
+.preview-area-group {
   width: 100%;
   display: inline-block;
   border-left: 1px solid #303030;
 }
-.editor-area{
+
+.editor-area {
   padding-left: 0px;
   padding-top: 20px;
   background: #0f0f0f;
 }
-.editor-area-group{
+
+.editor-area-group {
   width: 100%;
   display: inline-block;
 }
-.editor-area>section{
+
+.editor-area>section {
   background: #0f0f0f;
 }
-.editor-area>section>.editor-wrapper, 
+
+.editor-area>section>.editor-wrapper,
 .editor-area>section>.editor-wrapper>.monaco-editor,
 .editor-area>section>.editor-wrapper>.monaco-editor>.overflow-guard,
 .editor-area>section>.editor-wrapper>.monaco-editor>.overflow-guard>div,
-.editor-area>section>.editor-wrapper>.monaco-editor>.overflow-guard>div>.monaco-editor-background{
+.editor-area>section>.editor-wrapper>.monaco-editor>.overflow-guard>div>.monaco-editor-background {
   background: #0f0f0f;
 }
-.editor-wrapper{
+
+.editor-wrapper {
   overflow: hidden;
 }
-.editor-layers{
+
+.editor-layers {
   background-color: #1f1f1f;
   display: inline-block;
   width: 10%;
@@ -90,84 +102,99 @@ body {
   border-right: 1px solid #303030;
   color: #fff;
 }
-.editor{
+
+.editor {
   display: flex;
 }
-.editor-group{
+
+.editor-group {
   background-color: #1f1f1f;
 }
-.editor-actions{
-  padding:0px;
-  margin:0px 0px 10px 0px; 
-  padding:11px 0px 11px 0px; 
+
+.editor-actions {
+  padding: 0px;
+  margin: 0px 0px 10px 0px;
+  padding: 11px 0px 11px 0px;
   border-bottom: 1px solid #303030;
 }
-.editor-actions li{
+
+.editor-actions li {
   display: inline-block;
   width: 33%;
   text-align: center;
 }
-.editor-tree{
+
+.editor-tree {
   padding: 10px;
 }
-.editor-play-button img{
+
+.editor-play-button img {
   width: 25px;
   height: 25px;
-  padding:0px;
-  margin:0px;
+  padding: 0px;
+  margin: 0px;
   filter: invert(1);
   cursor: pointer;
 }
-.editor-play-button img:hover{
+
+.editor-play-button img:hover {
   filter: invert(0.3);
 }
-.editor-home-button img{
+
+.editor-home-button img {
   width: 25px;
   height: 25px;
-  padding:0px;
-  margin:0px;
+  padding: 0px;
+  margin: 0px;
   filter: invert(1);
   cursor: pointer;
 }
-.editor-home-button img:hover{
+
+.editor-home-button img:hover {
   filter: invert(0.3);
 }
-.editor-settings-button img{
+
+.editor-settings-button img {
   width: 25px;
   height: 25px;
-  padding:0px;
-  margin:0px;
+  padding: 0px;
+  margin: 0px;
   filter: invert(1);
   cursor: pointer;
 }
-.editor-settings-button img:hover{
+
+.editor-settings-button img:hover {
   filter: invert(0.3);
 }
-.active-file{
+
+.active-file {
   border-bottom: 1px solid #FDC740;
 }
-.preview-area-group h3{
+
+.preview-area-group h3 {
   color: #fff;
   font-weight: 100;
   font-size: 16px;
   padding: 0px;
   margin: 15px 0px 16px 20px;
- 
+
 }
-.preview-area-group-header{
+
+.preview-area-group-header {
   border-bottom: 1px solid #303030;
   position: relative;
 }
 
 
-.preview-background-color-pallet{
+.preview-background-color-pallet {
   padding: 0px;
   margin: 0px;
   position: absolute;
   right: 10px;
-  top:-2px;
+  top: -2px;
 }
-.preview-background-color-pallet li{
+
+.preview-background-color-pallet li {
   display: inline-block;
   padding: 0px;
   margin: 0px;
@@ -180,124 +207,141 @@ body {
   cursor: pointer;
 }
 
-.preview-background-color-pallet li.selected{
-  border: 2px solid #d3d3d3; 
+.preview-background-color-pallet li.selected {
+  border: 2px solid #d3d3d3;
   height: 20px;
   width: 20px;
 }
-.preview-background-color-pallet .pallet1{
+
+.preview-background-color-pallet .pallet1 {
   background: rgb(217, 182, 152);
   background: linear-gradient(117deg, rgb(247, 194, 95) 0%, rgb(160, 80, 80) 100%);
 }
-.preview-background-color-pallet .pallet2{
-  background: rgb(217,152,181);
-  background: linear-gradient(117deg, rgba(217,152,181,1) 0%, rgba(104,80,160,1) 100%);
+
+.preview-background-color-pallet .pallet2 {
+  background: rgb(217, 152, 181);
+  background: linear-gradient(117deg, rgba(217, 152, 181, 1) 0%, rgba(104, 80, 160, 1) 100%);
 }
-.preview-background-color-pallet .pallet3{
+
+.preview-background-color-pallet .pallet3 {
   background: #FFBE7B;
   background: linear-gradient(117deg, #FFBE7B 0%, #FE8CC5 100%);
 }
-.preview-background-color-pallet .pallet4{
-  background: rgb(144,230,168);
-  background: linear-gradient(117deg, rgb(144,230,168) 0%, rgb(61,180,128) 100%);
+
+.preview-background-color-pallet .pallet4 {
+  background: rgb(144, 230, 168);
+  background: linear-gradient(117deg, rgb(144, 230, 168) 0%, rgb(61, 180, 128) 100%);
 }
-.preview-background-color-pallet .pallet5{
-  background: rgb(3,3,3);
+
+.preview-background-color-pallet .pallet5 {
+  background: rgb(3, 3, 3);
 }
-.preview-background-color-pallet .pallet6{
-  background: rgb(255,255,255);
+
+.preview-background-color-pallet .pallet6 {
+  background: rgb(255, 255, 255);
 }
-.preview-background-color-pallet .pallet7{
-  background: rgb(247,80,115);
-  background: linear-gradient(117deg, rgb(247,80,115) 0%, rgb(237,9,139) 100%);
+
+.preview-background-color-pallet .pallet7 {
+  background: rgb(247, 80, 115);
+  background: linear-gradient(117deg, rgb(247, 80, 115) 0%, rgb(237, 9, 139) 100%);
 }
-.preview-background-color-pallet .pallet8{
-  background: rgb(171,154,254);
-  background: linear-gradient(117deg, rgb(171,154,254) 0%, rgb(235,191,249) 100%);
+
+.preview-background-color-pallet .pallet8 {
+  background: rgb(171, 154, 254);
+  background: linear-gradient(117deg, rgb(171, 154, 254) 0%, rgb(235, 191, 249) 100%);
 }
-.preview-background-color-pallet .pallet9{
-  background: rgb(130,179,235);
-  background: linear-gradient(117deg, rgb(130,179,235) 0%, rgb(81,83,161) 100%);
+
+.preview-background-color-pallet .pallet9 {
+  background: rgb(130, 179, 235);
+  background: linear-gradient(117deg, rgb(130, 179, 235) 0%, rgb(81, 83, 161) 100%);
 }
-.top-bar{
+
+.top-bar {
   height: 1px;
 }
-.custom-box-area{
-  background: rgb(53 38 54 / 77%); 
-  padding: 10px 30px; 
-  border-radius: 6px; 
-  color: #fff
-}
-.preview-area-output{
+
+.preview-area-output {
   width: 100%;
-  height: 90vh;
+  height: 70vh;
   display: flex;
   justify-content: space-around;
   align-items: center;
 }
-.preview-upload-button{
+
+.preview-upload-button {
   position: absolute;
-    right: 330px;
-    top: -2px;
-    background: transparent;
-    border: 1px solid #898989;
-    color: #898989;
-    padding: 4px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.preview-export-button{
-  position: absolute;
-    right: 240px;
-    top: -2px;
-    background: #FDC740;
-    border: 1px solid #FDC740;
-    color: #000;
-    padding: 4px 20px;
-    font-weight: bold;
-    border-radius: 6px;
-   cursor: pointer;
+  right: 330px;
+  top: -2px;
+  background: transparent;
+  border: 1px solid #898989;
+  color: #898989;
+  padding: 4px 20px;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.preview-area-output.pallet1{
+.preview-export-button {
+  position: absolute;
+  right: 240px;
+  top: -2px;
+  background: #FDC740;
+  border: 1px solid #FDC740;
+  color: #000;
+  padding: 4px 20px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.preview-area-output.pallet1 {
   background: rgb(217, 182, 152);
   background: linear-gradient(117deg, rgb(247, 194, 95) 0%, rgb(160, 80, 80) 100%);
 }
-.preview-area-output.pallet2{
-  background: rgb(217,152,181);
-  background: linear-gradient(117deg, rgba(217,152,181,1) 0%, rgba(104,80,160,1) 100%);
+
+.preview-area-output.pallet2 {
+  background: rgb(217, 152, 181);
+  background: linear-gradient(117deg, rgba(217, 152, 181, 1) 0%, rgba(104, 80, 160, 1) 100%);
 }
-.preview-area-output.pallet3{
+
+.preview-area-output.pallet3 {
   background: #FFBE7B;
   background: linear-gradient(117deg, #FFBE7B 0%, #FE8CC5 100%);
 }
-.preview-area-output.pallet4{
-  background: rgb(144,230,168);
-  background: linear-gradient(117deg, rgb(144,230,168) 0%, rgb(61,180,128) 100%);
+
+.preview-area-output.pallet4 {
+  background: rgb(144, 230, 168);
+  background: linear-gradient(117deg, rgb(144, 230, 168) 0%, rgb(61, 180, 128) 100%);
 }
-.preview-area-output.pallet5{
-  background: rgb(3,3,3);
+
+.preview-area-output.pallet5 {
+  background: rgb(3, 3, 3);
 }
-.preview-area-output.pallet6{
-  background: rgb(255,255,255);
+
+.preview-area-output.pallet6 {
+  background: rgb(255, 255, 255);
 }
-.preview-area-output.pallet7{
-  background: rgb(247,80,115);
-  background: linear-gradient(117deg, rgb(247,80,115) 0%, rgb(237,9,139) 100%);
+
+.preview-area-output.pallet7 {
+  background: rgb(247, 80, 115);
+  background: linear-gradient(117deg, rgb(247, 80, 115) 0%, rgb(237, 9, 139) 100%);
 }
-.preview-area-output.pallet8{
-  background: rgb(171,154,254);
-  background: linear-gradient(117deg, rgb(171,154,254) 0%, rgb(235,191,249) 100%);
+
+.preview-area-output.pallet8 {
+  background: rgb(171, 154, 254);
+  background: linear-gradient(117deg, rgb(171, 154, 254) 0%, rgb(235, 191, 249) 100%);
 }
-.preview-area-output.pallet9{
-  background: rgb(130,179,235);
-  background: linear-gradient(117deg, rgb(130,179,235) 0%, rgb(81,83,161) 100%);
+
+.preview-area-output.pallet9 {
+  background: rgb(130, 179, 235);
+  background: linear-gradient(117deg, rgb(130, 179, 235) 0%, rgb(81, 83, 161) 100%);
 }
-.editor-file-nav{
-  width: 100%; 
+
+.editor-file-nav {
+  width: 100%;
   display: flex
 }
-.navigation-tree-footer{
+
+.navigation-tree-footer {
   position: absolute;
   bottom: 0px;
   width: calc(100% - 40px);
@@ -305,13 +349,74 @@ body {
   padding: 10px 20px;
   color: #000;
 }
-.navigation-tree-footer ul{
+
+.navigation-tree-footer ul {
   margin: 0px;
   padding: 0px;
   display: flex;
   justify-content: space-between;
 }
-.navigation-tree-footer ul li{
+
+.navigation-tree-footer ul li {
   display: inline-block;
   font-size: 12px;
+}
+
+.console-output {
+  height: 10vh;
+  color: #fff;
+}
+
+.console-output pre {
+  padding: 10px;
+  overflow: scroll;
+      height: 100%;
+}
+
+.console-output h3 {
+  font-size: 14px;
+  border-bottom: 1px solid #303030;
+  padding: 15px 10px;
+  margin: 0px;
+  ;
+}
+
+iframe {
+  border: 0px;
+}
+
+.editor-tree ul {
+  list-style: none;
+  padding-left: 15px;
+  margin-top: 0px;
+}
+
+.editor-tree>ul>li {
+  margin-bottom: 10px;
+}
+
+.editor-tree>ul>li>span {
+  font-weight: bold;
+}
+
+.editor-tree ul li {
+  cursor: pointer;
+}
+.no-module-message{
+  text-align: center;
+  width: 100%;
+  padding-top: 40vh;
+  color: #fff;
+}
+.no-module-message button{
+  border:0px;
+  background-color: #FDC740;
+  color: #000;
+  padding: 8px 16px;
+  font-weight: 100;
+  border-radius: 6px;
+  font-size: 16px;
+}
+.no-module-message h2{
+  font-weight: 100;
 }

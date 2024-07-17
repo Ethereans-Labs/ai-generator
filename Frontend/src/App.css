@@ -125,7 +125,8 @@ body {
 }
 
 .editor-tree {
-  padding: 10px;
+  margin: 0px;
+  padding: 0px;
 }
 
 .editor-play-button img {
@@ -387,8 +388,8 @@ iframe {
 
 .editor-tree ul {
   list-style: none;
-  padding-left: 15px;
   margin-top: 0px;
+  padding-left: 0px;
 }
 
 .editor-tree>ul>li {
@@ -401,6 +402,9 @@ iframe {
 
 .editor-tree ul li {
   cursor: pointer;
+  background: #303030;
+  padding: 10px 0px 10px 20px;
+  margin-bottom: 6px;
 }
 .no-module-message{
   text-align: center;
@@ -419,4 +423,99 @@ iframe {
 }
 .no-module-message h2{
   font-weight: 100;
+}
+/* Modal Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+}
+
+/* Modal Content */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  color: #fff;
+  transform: translate(-50%, -50%);
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  width: 80%;
+  max-width: 500px;
+  box-sizing: border-box;
+}
+
+/* Form Styles */
+.modal form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form Labels */
+.modal form label {
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Form Inputs */
+.modal form input[type="text"],
+.modal form input[type="file"] {
+  display: block;
+  margin-top: 5px;
+  width: -webkit-fill-available;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Form Buttons */
+.modal form button {
+  margin-top: 15px;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal form button[type="submit"] {
+  background-color: #FDC740;
+  color: #000;
+}
+
+.modal form button[type="button"] {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal form button:hover {
+  opacity: 0.8;
+}
+
+.modal-buttons{
+  display: flex;
+  justify-content: space-between;
+}
+.margin-top-10{
+  margin-top: 10px;
+}
+.margin-top-0{
+  margin-top: 0px;
+}
+.sub-menu{
+  margin-top: 5px!important;
+}
+.sub-menu li{
+  padding: 3px 0px 3px 10px!important;
+  margin:0px!important;
+  font-size: 14px;
 }

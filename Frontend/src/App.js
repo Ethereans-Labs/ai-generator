@@ -1,16 +1,19 @@
 import './App.css';
 import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
+import Modal from 'react-modal';
+
+Modal.setAppElement('#root'); // For accessibility
 
 function App() {
   const [palletColor, setPalletColor] = useState('pallet2');
   const [modules, setModules] = useState({
-    "module1": {
+    "Module 1": {
       "module.html": "<div class='custom-box-area'><h1>This is Module 1 heading</h1><p>This is Module 1 paragraph.</p></div>",
       "module.css": ".custom-box-area{ background: rgb(53 38 54 / 77%);  padding: 10px 30px; border-radius: 6px;  color: #fff}",
       "module.js": "console.log('Module 1');"
     },
-    "module2": {
+    "Module 2": {
       "module.html": "<div class='custom-box-area'><h1>This is Module 2 heading</h1><p>This is Module 2 paragraph.</p></div>",
       "module.css": ".custom-box-area { background-color: lightblue; }",
       "module.js": "console.log('Module 2');"
@@ -22,6 +25,9 @@ function App() {
   const [currentFileType, setCurrentFileType] = useState('HTML');
   const [consoleOutput, setConsoleOutput] = useState('');
   const iframeRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newModuleName, setNewModuleName] = useState('');
+  const [newModuleFile, setNewModuleFile] = useState(null);
 
   const applyModuleToPreview = (moduleName) => {
     const module = modules[moduleName];
@@ -136,6 +142,43 @@ function App() {
     setConsoleOutput(''); // Clear console output when closing the module
   };
 
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setNewModuleName('');
+    setNewModuleFile(null);
+  };
+
+  const handleModuleNameChange = (e) => {
+    setNewModuleName(e.target.value);
+  };
+
+  const handleFileChange = (e) => {
+    setNewModuleFile(e.target.files[0]);
+  };
+
+  const handleSubmit = () => {
+    if (newModuleName && newModuleFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const fileContent = e.target.result;
+        setModules({
+          ...modules,
+          [newModuleName]: {
+            "module.html": "<div class='custom-box-area'><h1>This is " + newModuleName + " heading</h1><p>This is " + newModuleName + " paragraph.</p></div>",
+            "module.css": ".custom-box-area { background-color: lightblue; }",
+            "module.js": "console.log('" + newModuleName + "');"
+          }
+        });
+        handleCloseModal();
+      };
+      reader.readAsText(newModuleFile);
+    }
+  };
+
   const pallets = ['pallet1', 'pallet2', 'pallet3', 'pallet4', 'pallet5', 'pallet6', 'pallet7', 'pallet8', 'pallet9'];
 
   return (
@@ -147,7 +190,7 @@ function App() {
             <div>
               <ul className='editor-actions'>
                 <li className='editor-home-button'><img src='home.png' alt="Home" /></li>
-                <li className='editor-play-button'><img src='wand.png' alt="Play" /></li>
+                <li className='editor-play-button' onClick={handleOpenModal}><img src='wand.png' alt="Play" /></li>
                 <li className='editor-settings-button'><img src='settings.png' alt="Settings" /></li>
               </ul>
             </div>
@@ -157,7 +200,7 @@ function App() {
                   <li key={moduleName}>
                     <span onClick={() => handleModuleClick(moduleName)}>{moduleName}</span>
                     {selectedModule === moduleName && (
-                      <ul>
+                      <ul className={'sub-menu'}>
                         <li onClick={() => handleFileClick('module.html')}>module.html</li>
                         <li onClick={() => handleFileClick('module.css')}>module.css</li>
                         <li onClick={() => handleFileClick('module.js')}>module.js</li>
@@ -237,13 +280,35 @@ function App() {
             </>
           ) : (
             <div className='no-module-message'>
-              <img src='https://kaiten.ai/wp-content/uploads/2024/04/logo-icon.png'/>
+              <img src='https://kaiten.ai/wp-content/uploads/2024/04/logo-icon.png' />
               <h2>Select a module or create a new one!</h2>
-              <button>Ceate New Module</button>
+              <button onClick={handleOpenModal}>Create New Module</button>
             </div>
           )}
         </div>
       </div>
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={handleCloseModal}
+        contentLabel="Create New Module"
+        className="modal"
+        overlayClassName="overlay"
+      >
+        <h2 className={'margin-top-0'}>Create New Module</h2>
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+          <label>
+            <input type="text" placeholder='Add custom instructions*' value={newModuleName} onChange={handleModuleNameChange} required />
+          </label>
+          <label className={'margin-top-10'}>
+            Smart contract SOL file*
+            <input type="file" onChange={handleFileChange} required />
+          </label>
+          <div className={'modal-buttons'}>
+            <button type="button" onClick={handleCloseModal}>Cancel</button>
+            <button type="submit">Submit</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

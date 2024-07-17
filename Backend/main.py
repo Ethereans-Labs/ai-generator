@@ -1,13 +1,12 @@
-import uvicorn
-import os
-import logging
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from app.api.routers.code_generation import code_generation_router
 from app.settings import init_settings
-from app.api.routers.chat import chat_router
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+import logging
+import os
+import uvicorn
 
 load_dotenv()
 
@@ -37,18 +36,7 @@ if environment == "dev":
         return RedirectResponse(url="/docs")
 
 
-def mount_static_files(directory, path):
-    if os.path.exists(directory):
-        app.mount(path, StaticFiles(directory=directory),
-                  name=f"{directory}-static")
-
-
-# Mount the data files to serve the file viewer
-mount_static_files("data", "/api/files/data")
-# Mount the output files from tools
-mount_static_files("tool-output", "/api/files/tool-output")
-
-app.include_router(chat_router, prefix="/api/chat")
+app.include_router(code_generation_router, prefix="/api/code")
 
 
 if __name__ == "__main__":

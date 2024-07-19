@@ -74,6 +74,7 @@ body {
 
 .editor-area-group {
   width: 100%;
+  min-width: 100px;
   display: inline-block;
 }
 
@@ -339,6 +340,7 @@ body {
 
 .editor-file-nav {
   width: 100%;
+  min-width: 100px;
   display: flex
 }
 
@@ -472,9 +474,11 @@ iframe {
   margin-top: 5px;
   width: -webkit-fill-available;
   padding: 10px;
+  background: #1f1f1f;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
+  color: #fff;
 }
 
 /* Form Buttons */
@@ -518,4 +522,28 @@ iframe {
   padding: 3px 0px 3px 10px!important;
   margin:0px!important;
   font-size: 14px;
+}
+
+@media screen and (max-width: 1430px) {
+  .preview-background-color-pallet {
+   display: none;
+  }
+  .preview-export-button{
+    right: 10px;
+  }
+  .preview-upload-button{
+    right: 110px;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .preview-export-button{
+   display: none;
+  }
+  .preview-upload-button{
+    display: none;
+  }
+  .preview-area-group{
+    display: none;
+  }
 }

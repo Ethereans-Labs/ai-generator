@@ -3,8 +3,10 @@ from fastapi import APIRouter
 from llama_index.agent.openai import OpenAIAgent
 from llama_index.core.agent import AgentChatResponse
 from llama_index.core.tools import FunctionTool
+from typing import Dict
 import ast
 import logging
+import os
 
 code_generation_router = r = APIRouter()
 
@@ -29,10 +31,20 @@ def get_agent(system_prompt: str | None = None):
 async def generate(
     body: CodeGenerationBody
 ) -> CodeGenerationResponse:
-    agent = get_agent(system_prompt=body.prompt)
+    system_prompt = os.getenv("CODE_GENERATION_SYSTEM_PROMPT")
+    agent = get_agent(system_prompt=system_prompt)
 
-    query = "give me the code for snake"
+    if body.custom_instructions:
+        query = f"""{body.custom_instructions}
+
+        Here is the code for the smart contract:
+        {body.smart_contract_code}
+        """
+    else:
+        query = f"""Here is the code for the smart contract:
+        {body.smart_contract_code}"""
+
     response: AgentChatResponse = await agent.achat(message=query, tool_choice="generate_code")
-    parsed_response = ast.literal_eval(response.response)
+    parsed_response: Dict[str, str] = ast.literal_eval(response.response)
 
     return CodeGenerationResponse(html=parsed_response.get("html"), css=parsed_response.get("css"), javascript=parsed_response.get("javascript"))

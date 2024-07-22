@@ -7,11 +7,10 @@ logger = logging.getLogger("uvicorn")
 
 
 class CodeGenerationBody(BaseModel):
-    natspec: Optional[str] = Field(default=None, description="Natspec")
     smart_contract_code: Optional[str] = Field(
         default=None, description="Smart contract code")
-    prompt: Optional[str] = Field(
-        default=None, description="Prompt used by the LLM to generate the code")
+    custom_instructions: Optional[str] = Field(
+        default=None, description="Custom instructions used by the LLM to generate the code")
 
 
 class CodeGenerationResponse(BaseModel):

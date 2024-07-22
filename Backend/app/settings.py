@@ -26,10 +26,3 @@ def init_openai():
         "max_tokens": int(max_tokens) if max_tokens is not None else None,
     }
     Settings.llm = OpenAI(**config)
-
-    dimensions = os.getenv("EMBEDDING_DIM")
-    config = {
-        "model": os.getenv("EMBEDDING_MODEL"),
-        "dimensions": int(dimensions) if dimensions is not None else None,
-    }
-    Settings.embed_model = OpenAIEmbedding(**config)

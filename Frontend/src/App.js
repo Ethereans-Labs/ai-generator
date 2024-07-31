@@ -3,22 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import Modal from 'react-modal';
 
-Modal.setAppElement('#root'); // For accessibility
+Modal.setAppElement('#root');
 
 function App() {
   const [palletColor, setPalletColor] = useState('pallet2');
-  const [modules, setModules] = useState({
-    "Module 1": {
-      "module.html": "<div class='custom-box-area'><h1>This is Module 1 heading</h1><p>This is Module 1 paragraph.</p></div>",
-      "module.css": ".custom-box-area{ background: rgb(53 38 54 / 77%);  padding: 10px 30px; border-radius: 6px;  color: #fff}",
-      "module.js": "console.log('Module 1');"
-    },
-    "Module 2": {
-      "module.html": "<div class='custom-box-area'><h1>This is Module 2 heading</h1><p>This is Module 2 paragraph.</p></div>",
-      "module.css": ".custom-box-area { background-color: lightblue; }",
-      "module.js": "console.log('Module 2');"
-    }
-  });
+  const [modules, setModules] = useState({});
   const [selectedModule, setSelectedModule] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [editorContent, setEditorContent] = useState('');
@@ -28,6 +17,9 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newModuleName, setNewModuleName] = useState('');
   const [newModuleFile, setNewModuleFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const serviceUrl = 'http://0.0.0.0:8000/api/code';
 
   const applyModuleToPreview = (moduleName) => {
     const module = modules[moduleName];
@@ -91,7 +83,6 @@ function App() {
       }
     });
 
-    // Apply changes to preview immediately
     const iframe = iframeRef.current;
     if (iframe) {
       const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
@@ -139,7 +130,7 @@ function App() {
     setSelectedModule(null);
     setSelectedFile(null);
     setEditorContent('');
-    setConsoleOutput(''); // Clear console output when closing the module
+    setConsoleOutput('');
   };
 
   const handleOpenModal = () => {
@@ -160,20 +151,42 @@ function App() {
     setNewModuleFile(e.target.files[0]);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (newModuleName && newModuleFile) {
+      setIsLoading(true);
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const fileContent = e.target.result;
-        setModules({
-          ...modules,
-          [newModuleName]: {
-            "module.html": "<div class='custom-box-area'><h1>This is " + newModuleName + " heading</h1><p>This is " + newModuleName + " paragraph.</p></div>",
-            "module.css": ".custom-box-area { background-color: lightblue; }",
-            "module.js": "console.log('" + newModuleName + "');"
-          }
+
+        const response = await fetch(serviceUrl, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            smart_contract_code: fileContent,
+            custom_instructions: newModuleName
+          })
         });
-        handleCloseModal();
+
+        if (response.ok) {
+          const result = await response.json();
+          setModules({
+            ...modules,
+            [newModuleName]: {
+              "module.html": result.html,
+              "module.css": result.css,
+              "module.js": result.javascript
+            }
+          });
+          //handleModuleClick(newModuleName);
+          handleCloseModal(); 
+          
+        } else {
+          console.error('Error:', response.statusText);
+        }
+        setIsLoading(false);
       };
       reader.readAsText(newModuleFile);
     }
@@ -294,23 +307,27 @@ function App() {
         className="modal"
         overlayClassName="overlay"
       >
-        <h2 className={'margin-top-0'}>Create New Module</h2>
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-          <label>
-            <input type="text" placeholder='Add custom instructions*' value={newModuleName} onChange={handleModuleNameChange} required />
-          </label>
-          <label className={'margin-top-10'}>
-            Smart contract SOL file*
-            <input type="file" onChange={handleFileChange} required />
-          </label>
-          <div className={'modal-buttons'}>
-            <button type="button" onClick={handleCloseModal}>Cancel</button>
-            <button type="submit">Submit</button>
-          </div>
-        </form>
+        {!isLoading &&
+          <>
+            <h2 className={'margin-top-0'}>Create New Module</h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+              <label>
+                <input type="text" placeholder='Add custom instructions*' value={newModuleName} onChange={handleModuleNameChange} required />
+              </label>
+              <label className={'margin-top-10'}>
+                Smart contract SOL file*
+                <input type="file" onChange={handleFileChange} required />
+              </label>
+              <div className={'modal-buttons'}>
+                <button type="button" onClick={handleCloseModal}>Cancel</button>
+                <button type="submit">Submit</button>
+              </div>
+            </form></>}
+        {isLoading && <div className="loader" style={{textAlign: 'center', paddingBottom: '20px'}}><h2><b>Processing</b></h2>Please wait...</div>}
       </Modal>
     </div>
   );
 }
 
 export default App;
+

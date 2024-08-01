@@ -31,52 +31,61 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.activate = activate;
 exports.deactivate = deactivate;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(__webpack_require__(1));
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 function activate(context) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "webpackkainext" is now active!');
+    // Register the command for the webview
     let webview = vscode.commands.registerCommand("webpackkainext.webview", () => {
-        let panel = vscode.window.createWebviewPanel("webview", "Web View", {
-            viewColumn: vscode.ViewColumn.One,
-        }, {
+        let panel = vscode.window.createWebviewPanel("webview", "Web View", vscode.ViewColumn.One, {
             enableScripts: true,
         });
         let scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.45308fd0.js"));
         let cssSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "css", "main.5e2ed47f.css"));
-        console.log(cssSrc, scriptSrc);
+        console.log("CSS Source:", cssSrc.toString());
+        console.log("Script Source:", scriptSrc.toString());
         panel.webview.html = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <title>React App</title>
-    <link
-      href="${cssSrc}"
-      rel="stylesheet" />
+    <link href="${cssSrc}" rel="stylesheet" />
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-	<script src="${scriptSrc}"></script>
+    <script src="${scriptSrc}"></script>
   </body>
-</html>
-        `;
+</html>`;
     });
-    //   // The command has been defined in the package.json file
-    //   // Now provide the implementation of the command with registerCommand
-    //   // The commandId parameter must match the command field in package.json
-    //   const disposable = vscode.commands.registerCommand(
-    //     "webpackkainext.helloWorld",
-    //     () => {
-    //       // The code you place here will be executed every time your command is executed
-    //       // Display a message box to the user
-    //       vscode.window.showInformationMessage("Hello World from webpackkainext!");
-    //     }
-    //   );
+    // Register the webview view provider for the sidebar
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider("webpackkainextSidebarView", new MyWebviewViewProvider(context)));
     context.subscriptions.push(webview);
+}
+class MyWebviewViewProvider {
+    _context;
+    constructor(context) {
+        this._context = context;
+    }
+    resolveWebviewView(webviewView, context, token) {
+        webviewView.webview.options = {
+            enableScripts: true,
+        };
+        let scriptSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "js", "main.45308fd0.js"));
+        let cssSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "css", "main.5e2ed47f.css"));
+        console.log("Sidebar CSS Source:", cssSrc.toString());
+        console.log("Sidebar Script Source:", scriptSrc.toString());
+        webviewView.webview.html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>React App</title>
+    <link href="${cssSrc}" rel="stylesheet" />
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script src="${scriptSrc}"></script>
+</body>
+</html>`;
+    }
 }
 // This method is called when your extension is deactivated
 function deactivate() { }

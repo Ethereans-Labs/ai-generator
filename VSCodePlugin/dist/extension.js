@@ -39,8 +39,8 @@ function activate(context) {
         let panel = vscode.window.createWebviewPanel("webview", "Web View", vscode.ViewColumn.One, {
             enableScripts: true,
         });
-        let scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.45308fd0.js"));
-        let cssSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "css", "main.5e2ed47f.css"));
+        let scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.29330ec4.js"));
+        let cssSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "css", "main.beadbf4e.css"));
         console.log("CSS Source:", cssSrc.toString());
         console.log("Script Source:", scriptSrc.toString());
         panel.webview.html = `<!DOCTYPE html>
@@ -69,8 +69,8 @@ class MyWebviewViewProvider {
         webviewView.webview.options = {
             enableScripts: true,
         };
-        let scriptSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "js", "main.45308fd0.js"));
-        let cssSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "css", "main.5e2ed47f.css"));
+        let scriptSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "js", "main.29330ec4.js"));
+        let cssSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "css", "main.beadbf4e.css"));
         console.log("Sidebar CSS Source:", cssSrc.toString());
         console.log("Sidebar Script Source:", scriptSrc.toString());
         webviewView.webview.html = `<!DOCTYPE html>

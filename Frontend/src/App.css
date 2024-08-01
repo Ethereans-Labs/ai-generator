@@ -400,12 +400,15 @@ iframe {
 
 .editor-tree>ul>li>span {
   font-weight: bold;
+    font-size: 14px;
+    padding: 10px !important;
+    display: block;
 }
 
 .editor-tree ul li {
   cursor: pointer;
   background: #303030;
-  padding: 10px 0px 10px 20px;
+  padding: 10px 0px 10px 10px;
   margin-bottom: 6px;
 }
 .no-module-message{

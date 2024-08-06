@@ -79,13 +79,18 @@ function App() {
 
   const handleEditorChange = (value) => {
     setEditorContent(value);
-    setModules({
-      ...modules,
-      [selectedModule]: {
-        ...modules[selectedModule],
-        [selectedFile]: value,
-      },
+    
+    var module = modules.map((module, index) => {
+      if (index === selectedModuleIndex) {
+        return {
+          ...module,
+          [selectedFile]: value, 
+        };
+      }
+      return module; 
     });
+
+    setModules(module);
 
     const iframe = iframeRef.current;
     if (iframe) {
@@ -99,7 +104,7 @@ function App() {
         }
       } else if (selectedFile === "module.js") {
         try {
-          // iframe.contentWindow.eval(value);
+          iframe.contentWindow.eval(value);
         } catch (e) {
           setConsoleOutput("Error: " + e.message);
         }

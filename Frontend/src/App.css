@@ -66,7 +66,7 @@ body {
   border-left: 1px solid #303030;
 }
 
-editor-area {
+.editor-area {
   padding-left: 0px;
   padding-top: 20px;
   background: #0f0f0f;

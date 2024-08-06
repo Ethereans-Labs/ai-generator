@@ -7,7 +7,7 @@ Modal.setAppElement("#root");
 
 function App() {
   const [palletColor, setPalletColor] = useState("pallet2");
-  const [modules, setModules] = useState({});
+  const [modules, setModules] = useState([]);
   const [selectedModule, setSelectedModule] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [editorContent, setEditorContent] = useState("");
@@ -16,13 +16,15 @@ function App() {
   const iframeRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newModuleName, setNewModuleName] = useState("");
+  const [promptValue, setPromptValue] = useState("");
   const [newModuleFile, setNewModuleFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
 
   const serviceUrl = "http://0.0.0.0:8000/api/code";
 
-  const applyModuleToPreview = (moduleName) => {
-    const module = modules[moduleName];
+  const applyModuleToPreview = () => {
+    const module = modules[selectedModuleIndex];
     const iframe = iframeRef.current;
 
     if (iframe) {
@@ -59,17 +61,18 @@ function App() {
     }
   };
 
-  const handleModuleClick = (moduleName) => {
-    setSelectedModule(moduleName);
+  const handleModuleClick = (moduleIndex) => {
+    setSelectedModule(modules[moduleIndex]);
     setSelectedFile("module.html");
-    setEditorContent(modules[moduleName]["module.html"]);
+    setEditorContent(modules[moduleIndex]["module.html"]);
     setCurrentFileType("HTML");
-    applyModuleToPreview(moduleName);
+    setSelectedModuleIndex(moduleIndex);
+    applyModuleToPreview();
   };
 
   const handleFileClick = (file) => {
     setSelectedFile(file);
-    setEditorContent(modules[selectedModule][file]);
+    setEditorContent(modules[selectedModuleIndex][file]);
     setCurrentFileType(file.split(".").pop().toUpperCase());
   };
 
@@ -122,12 +125,13 @@ function App() {
 
   useEffect(() => {
     if (selectedFile) {
-      applyModuleToPreview(selectedModule);
+      applyModuleToPreview();
     }
   }, [editorContent, selectedFile]);
 
   const closeModule = () => {
     setSelectedModule(null);
+    setSelectedModuleIndex(null);
     setSelectedFile(null);
     setEditorContent("");
     setConsoleOutput("");
@@ -139,12 +143,12 @@ function App() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setNewModuleName("");
+    setPromptValue("");
     setNewModuleFile(null);
   };
 
   const handleModuleNameChange = (e) => {
-    setNewModuleName(e.target.value);
+    setPromptValue(e.target.value);
   };
 
   const handleFileChange = (e) => {
@@ -152,7 +156,7 @@ function App() {
   };
 
   const handleSubmit = async () => {
-    if (newModuleName && newModuleFile) {
+    if (promptValue && newModuleFile) {
       setIsLoading(true);
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -166,20 +170,21 @@ function App() {
           },
           body: JSON.stringify({
             smart_contract_code: fileContent,
-            custom_instructions: newModuleName,
+            custom_instructions: promptValue,
           }),
         });
 
         if (response.ok) {
           const result = await response.json();
-          setModules({
+          setModules([
             ...modules,
-            [newModuleName]: {
+            {
+              "prompt": promptValue,
               "module.html": result.html,
               "module.css": result.css,
               "module.js": result.javascript,
             },
-          });
+          ]);
           //handleModuleClick(newModuleName);
           handleCloseModal();
         } else {
@@ -278,15 +283,16 @@ function App() {
             </div>
             <div
               className="editor-tree"
-              onClick={(e) => e.stopPropagation()}>
+              onClick={(e) => e.stopPropagation()}
+            >
               <ul>
-                {Object.keys(modules).map((moduleName) => (
-                  <li key={moduleName}>
-                    <span onClick={() => handleModuleClick(moduleName)}>
-                      {moduleName}
+                {modules.map((module, index) => (
+                  <li key={index}>
+                    <span onClick={() => handleModuleClick(index)}>
+                      {module.prompt}
                     </span>
-                    {selectedModule === moduleName && (
-                      <ul className={"sub-menu"}>
+                    {selectedModuleIndex === index && (
+                      <ul className="sub-menu">
                         <li onClick={() => handleFileClick("module.html")}>
                           module.html
                         </li>
@@ -382,9 +388,8 @@ function App() {
                       {pallets.map((pallet) => (
                         <li
                           key={pallet}
-                          className={`${pallet} ${
-                            palletColor === pallet ? "selected" : ""
-                          }`}
+                          className={`${pallet} ${palletColor === pallet ? "selected" : ""
+                            }`}
                           onClick={() => handlePalletClick(pallet)}></li>
                       ))}
                     </ul>
@@ -428,7 +433,7 @@ function App() {
                 <input
                   type="text"
                   placeholder="Add custom instructions*"
-                  value={newModuleName}
+                  value={promptValue}
                   onChange={handleModuleNameChange}
                   required
                 />

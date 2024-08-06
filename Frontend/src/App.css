@@ -66,7 +66,7 @@ body {
   border-left: 1px solid #303030;
 }
 
-.editor-area {
+editor-area {
   padding-left: 0px;
   padding-top: 20px;
   background: #0f0f0f;
@@ -179,40 +179,24 @@ body {
   font-size: 16px;
   padding: 0px;
   margin: 15px 0px 16px 20px;
-
 }
 
 .preview-area-group-header {
   border-bottom: 1px solid #303030;
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-
-.preview-background-color-pallet {
-  padding: 0px;
-  margin: 0px;
-  position: absolute;
-  right: 10px;
-  top: -2px;
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the spacing as needed */
 }
 
-.preview-background-color-pallet li {
-  display: inline-block;
-  padding: 0px;
-  margin: 0px;
-  background-color: #ddd;
-  height: 24px;
-  width: 24px;
-  border-radius: 100px;
-  position: relative;
-  left: 0px;
-  cursor: pointer;
-}
-
-.preview-background-color-pallet li.selected {
-  border: 2px solid #d3d3d3;
-  height: 20px;
-  width: 20px;
+.right {
+  margin-left: auto;
+  margin-right: 10px;
 }
 
 .preview-background-color-pallet .pallet1 {
@@ -271,7 +255,7 @@ body {
 }
 
 .preview-upload-button {
-  position: absolute;
+  display: flex;
   right: 330px;
   top: -2px;
   background: transparent;
@@ -283,7 +267,7 @@ body {
 }
 
 .preview-export-button {
-  position: absolute;
+  display: flex;
   right: 240px;
   top: -2px;
   background: #FDC740;

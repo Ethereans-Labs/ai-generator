@@ -2,6 +2,7 @@ import "./App.css";
 import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import Modal from "react-modal";
+import PalletMenu from "./PalletMenu";
 
 Modal.setAppElement("#root");
 
@@ -98,7 +99,7 @@ function App() {
         }
       } else if (selectedFile === "module.js") {
         try {
-          iframe.contentWindow.eval(value);
+          // iframe.contentWindow.eval(value);
         } catch (e) {
           setConsoleOutput("Error: " + e.message);
         }
@@ -207,6 +208,13 @@ function App() {
     "pallet8",
     "pallet9",
   ];
+
+  const [selectedPallet, setSelectedPallet] = useState(pallets[0]); // Default to first pallet
+
+  const handlePalletChange = (pallet) => {
+    setSelectedPallet(pallet);
+    setPalletColor(pallet);
+  };
 
   return (
     <div className="App">
@@ -379,12 +387,15 @@ function App() {
                 </div>
                 <div className="preview-area-group">
                   <div className="preview-area-group-header">
-                    <h3>Preview</h3>
-                    <button className="preview-export-button">Export</button>
-                    <button className="preview-upload-button">
-                      Upload to IPFS
-                    </button>
-                    <ul className="preview-background-color-pallet">
+                    <div class="left">
+                      <h3>Preview</h3>
+                      <button className="preview-export-button">Export</button>
+                      <button className="preview-upload-button">
+                        Upload to IPFS
+                      </button>
+                    </div>
+                    
+                    {/* <ul className="preview-background-color-pallet">
                       {pallets.map((pallet) => (
                         <li
                           key={pallet}
@@ -392,7 +403,10 @@ function App() {
                             }`}
                           onClick={() => handlePalletClick(pallet)}></li>
                       ))}
-                    </ul>
+                    </ul> */}
+                    <div class="right">
+                      <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange}/>
+                    </div>
                   </div>
                   <iframe
                     ref={iframeRef}

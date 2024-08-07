@@ -427,7 +427,6 @@ function App() {
             </>
           ) : (
             <div className="no-module-message">
-              <img src="https://kaiten.ai/wp-content/uploads/2024/04/logo-icon.png" />
               <h2>Select a module or create a new one!</h2>
               <button onClick={handleOpenModal}>Create New Module</button>
             </div>

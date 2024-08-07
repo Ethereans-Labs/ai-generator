@@ -30,7 +30,7 @@ function activate(context) {
     console.log('Congratulations, your extension "webpackkainext" is now active!');
     // Register the command for the webview
     let webview = vscode.commands.registerCommand("webpackkainext.webview", () => {
-        let panel = vscode.window.createWebviewPanel("webview", "Web View", vscode.ViewColumn.One, {
+        let panel = vscode.window.createWebviewPanel("webview", "Kaiten", vscode.ViewColumn.One, {
             enableScripts: true,
         });
         let scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.0538bf69.js"));

@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
     () => {
       let panel = vscode.window.createWebviewPanel(
         "webview",
-        "Web View",
+        "Kaiten",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
           "build",
           "static",
           "js",
-          "main.0538bf69.js"
+          "main.3b25fac0.js"
         )
       );
       let cssSrc = panel.webview.asWebviewUri(
@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
           "build",
           "static",
           "css",
-          "main.885137a7.css"
+          "main.5b2f14c1.css"
         )
       );
 
@@ -91,7 +91,7 @@ class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         "build",
         "static",
         "js",
-        "main.0538bf69.js"
+        "main.3b25fac0.js"
       )
     );
     let cssSrc = webviewView.webview.asWebviewUri(
@@ -101,7 +101,7 @@ class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         "build",
         "static",
         "css",
-        "main.885137a7.css"
+        "main.5b2f14c1.css"
       )
     );
 

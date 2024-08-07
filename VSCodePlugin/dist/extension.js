@@ -1,1 +1,137 @@
-(()=>{"use strict";var e={265:function(e,t,i){var n=this&&this.__createBinding||(Object.create?function(e,t,i,n){void 0===n&&(n=i);var r=Object.getOwnPropertyDescriptor(t,i);r&&!("get"in r?!t.__esModule:r.writable||r.configurable)||(r={enumerable:!0,get:function(){return t[i]}}),Object.defineProperty(e,n,r)}:function(e,t,i,n){void 0===n&&(n=i),e[n]=t[i]}),r=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),o=this&&this.__importStar||function(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var i in e)"default"!==i&&Object.prototype.hasOwnProperty.call(e,i)&&n(t,e,i);return r(t,e),t};Object.defineProperty(t,"__esModule",{value:!0}),t.activate=function(e){console.log('Congratulations, your extension "webpackkainext" is now active!');let t=s.commands.registerCommand("webpackkainext.webview",(()=>{let t=s.window.createWebviewPanel("webview","Web View",s.ViewColumn.One,{enableScripts:!0}),i=t.webview.asWebviewUri(s.Uri.joinPath(e.extensionUri,"media","build","static","js","main.0538bf69.js")),n=t.webview.asWebviewUri(s.Uri.joinPath(e.extensionUri,"media","build","static","css","main.885137a7.css"));console.log("CSS Source:",n.toString()),console.log("Script Source:",i.toString()),t.webview.html=`<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <title>React App</title>\n    <link href="${n}" rel="stylesheet" />\n  </head>\n  <body>\n    <noscript>You need to enable JavaScript to run this app.</noscript>\n    <div id="root"></div>\n    <script src="${i}"><\/script>\n  </body>\n</html>`}));e.subscriptions.push(s.window.registerWebviewViewProvider("webpackkainextSidebarView",new a(e))),e.subscriptions.push(t)},t.deactivate=function(){};const s=o(i(398));class a{_context;constructor(e){this._context=e}resolveWebviewView(e,t,i){e.webview.options={enableScripts:!0};let n=e.webview.asWebviewUri(s.Uri.joinPath(this._context.extensionUri,"media","build","static","js","main.0538bf69.js")),r=e.webview.asWebviewUri(s.Uri.joinPath(this._context.extensionUri,"media","build","static","css","main.885137a7.css"));console.log("Sidebar CSS Source:",r.toString()),console.log("Sidebar Script Source:",n.toString()),e.webview.html=`<!DOCTYPE html>\n<html lang="en">\n<head>\n    <title>React App</title>\n    <link href="${r}" rel="stylesheet" />\n</head>\n<body>\n    <noscript>You need to enable JavaScript to run this app.</noscript>\n    <div id="root"></div>\n    <script src="${n}"><\/script>\n</body>\n</html>`}}},398:e=>{e.exports=require("vscode")}},t={},i=function i(n){var r=t[n];if(void 0!==r)return r.exports;var o=t[n]={exports:{}};return e[n].call(o.exports,o,o.exports,i),o.exports}(265);module.exports=i})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
+/* 0 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.activate = activate;
+exports.deactivate = deactivate;
+const vscode = __importStar(__webpack_require__(1));
+function activate(context) {
+    console.log('Congratulations, your extension "webpackkainext" is now active!');
+    // Register the command for the webview
+    let webview = vscode.commands.registerCommand("webpackkainext.webview", () => {
+        let panel = vscode.window.createWebviewPanel("webview", "Kaiten", vscode.ViewColumn.One, {
+            enableScripts: true,
+        });
+        let scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.3b25fac0.js"));
+        let cssSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "css", "main.5b2f14c1.css"));
+        console.log("CSS Source:", cssSrc.toString());
+        console.log("Script Source:", scriptSrc.toString());
+        panel.webview.html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>React App</title>
+    <link href="${cssSrc}" rel="stylesheet" />
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script src="${scriptSrc}"></script>
+  </body>
+</html>`;
+    });
+    // Register the webview view provider for the sidebar
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider("webpackkainextSidebarView", new MyWebviewViewProvider(context)));
+    context.subscriptions.push(webview);
+}
+class MyWebviewViewProvider {
+    _context;
+    constructor(context) {
+        this._context = context;
+    }
+    resolveWebviewView(webviewView, context, token) {
+        webviewView.webview.options = {
+            enableScripts: true,
+        };
+        let scriptSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "js", "main.3b25fac0.js"));
+        let cssSrc = webviewView.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, "media", "build", "static", "css", "main.5b2f14c1.css"));
+        console.log("Sidebar CSS Source:", cssSrc.toString());
+        console.log("Sidebar Script Source:", scriptSrc.toString());
+        webviewView.webview.html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>React App</title>
+    <link href="${cssSrc}" rel="stylesheet" />
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script src="${scriptSrc}"></script>
+</body>
+</html>`;
+    }
+}
+// This method is called when your extension is deactivated
+function deactivate() { }
+
+
+/***/ }),
+/* 1 */
+/***/ ((module) => {
+
+module.exports = require("vscode");
+
+/***/ })
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__(0);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
+/******/ })()
+;
+//# sourceMappingURL=extension.js.map

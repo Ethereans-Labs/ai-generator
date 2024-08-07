@@ -58,6 +58,7 @@ body {
   padding: 5px 20px 5px 20px;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .preview-area-group {
@@ -176,7 +177,7 @@ body {
 .preview-area-group h3 {
   color: #fff;
   font-weight: 100;
-  font-size: 16px;
+  font-size: 14px;
   padding: 0px;
   margin: 15px 0px 16px 20px;
 }
@@ -264,6 +265,7 @@ body {
   padding: 4px 20px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .preview-export-button {
@@ -277,6 +279,7 @@ body {
   font-weight: bold;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .preview-area-output.pallet1 {
@@ -346,7 +349,7 @@ body {
 
 .navigation-tree-footer ul li {
   display: inline-block;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .console-output {
@@ -384,7 +387,7 @@ iframe {
 
 .editor-tree>ul>li>span {
   font-weight: bold;
-    font-size: 14px;
+    font-size: 12px;
     padding: 10px !important;
     display: block;
 }
@@ -408,10 +411,11 @@ iframe {
   padding: 8px 16px;
   font-weight: 100;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
 }
 .no-module-message h2{
   font-weight: 100;
+  font-size: 18px;
 }
 /* Modal Overlay */
 .overlay {
@@ -466,6 +470,7 @@ iframe {
   border: 1px solid #ccc;
   border-radius: 5px;
   color: #fff;
+  font-size: 12px;
 }
 
 /* Form Buttons */
@@ -476,6 +481,7 @@ iframe {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .modal form button[type="submit"] {
@@ -508,7 +514,7 @@ iframe {
 .sub-menu li{
   padding: 3px 0px 3px 10px!important;
   margin:0px!important;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 @media screen and (max-width: 1430px) {

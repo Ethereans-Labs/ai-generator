@@ -241,7 +241,7 @@ function App() {
                     stroke="currentColor"
                     class="size-6"
                     style={{
-                      width: "30px",
+                      width: "20px",
                     }}>
                     <path
                       stroke-linecap="round"
@@ -256,7 +256,7 @@ function App() {
                   <svg
                     class="size-6"
                     style={{
-                      width: "30px",
+                      width: "20px",
                     }}
                     viewBox="0 0 510 513"
                     fill="none"
@@ -277,7 +277,7 @@ function App() {
                     stroke-width="1.5"
                     stroke="currentColor"
                     style={{
-                      width: "30px",
+                      width: "20px",
                     }}
                     class="size-6">
                     <path
@@ -441,7 +441,7 @@ function App() {
         overlayClassName="overlay">
         {!isLoading && (
           <>
-            <h2 className={"margin-top-0"}>Create New Module</h2>
+            <h4 className={"margin-top-0"}>Create New Module</h4>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -479,9 +479,9 @@ function App() {
           <div
             className="loader"
             style={{ textAlign: "center", paddingBottom: "20px" }}>
-            <h2>
+            <h4>
               <b>Processing</b>
-            </h2>
+            </h4>
             Please wait...
           </div>
         )}

@@ -2,6 +2,9 @@ import "./App.css";
 import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import Modal from "react-modal";
+import PalletMenu from "./PalletMenu";
+import SecureStorage from 'secure-web-storage';
+import CryptoJS from 'crypto-js';
 
 Modal.setAppElement("#root");
 
@@ -15,13 +18,45 @@ function App() {
   const [consoleOutput, setConsoleOutput] = useState("");
   const iframeRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [newModuleName, setNewModuleName] = useState("");
   const [promptValue, setPromptValue] = useState("");
   const [newModuleFile, setNewModuleFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
-
+  const key = 'KSI-93-JJD23-JDPP-JD';
   const serviceUrl = "http://0.0.0.0:8000/api/code";
+  
+  const secureStorage = new SecureStorage(localStorage, {
+    hash: function (key) {
+      return CryptoJS.SHA256(key, key).toString();
+    },
+    encrypt: function (data) {
+      return CryptoJS.AES.encrypt(data, key).toString();
+    },
+    decrypt: function (data) {
+      return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+    }
+  });
+
+  const [openAiApiKey, setOpenAiApiKey] = useState(secureStorage.getItem('openAiApiKey') || '');
+  const [pinataApiKey, setPinataApiKey] = useState(secureStorage.getItem('pinataApiKey') || '');
+
+  const handleOpenAiApiKeyChange = (e) => {
+    setOpenAiApiKey(e.target.value);
+  };
+
+  const handlePinataApiKeyChange = (e) => {
+    setPinataApiKey(e.target.value);
+  };
+
+  const handleSettingsSubmit = (e) => {
+    e.preventDefault();
+    secureStorage.setItem('openAiApiKey', openAiApiKey);
+    secureStorage.setItem('pinataApiKey', pinataApiKey);
+
+    handleCloseSettingsModal();
+  };
 
   const applyModuleToPreview = () => {
     const module = modules[selectedModuleIndex];
@@ -78,13 +113,18 @@ function App() {
 
   const handleEditorChange = (value) => {
     setEditorContent(value);
-    setModules({
-      ...modules,
-      [selectedModule]: {
-        ...modules[selectedModule],
-        [selectedFile]: value,
-      },
+
+    var module = modules.map((module, index) => {
+      if (index === selectedModuleIndex) {
+        return {
+          ...module,
+          [selectedFile]: value,
+        };
+      }
+      return module;
     });
+
+    setModules(module);
 
     const iframe = iframeRef.current;
     if (iframe) {
@@ -141,10 +181,18 @@ function App() {
     setIsModalOpen(true);
   };
 
+  const handleOpenSettingsModal = () => {
+    setIsSettingsModalOpen(true);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setPromptValue("");
     setNewModuleFile(null);
+  };
+
+  const handleCloseSettingsModal = () => {
+    setIsSettingsModalOpen(false);
   };
 
   const handleModuleNameChange = (e) => {
@@ -167,10 +215,11 @@ function App() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
+            "openai-api-key":openAiApiKey
           },
           body: JSON.stringify({
             smart_contract_code: fileContent,
-            custom_instructions: promptValue,
+            custom_instructions: promptValue
           }),
         });
 
@@ -208,6 +257,13 @@ function App() {
     "pallet9",
   ];
 
+  const [selectedPallet, setSelectedPallet] = useState(pallets[0]); // Default to first pallet
+
+  const handlePalletChange = (pallet) => {
+    setSelectedPallet(pallet);
+    setPalletColor(pallet);
+  };
+
   return (
     <div className="App">
       <div className="top-bar"></div>
@@ -228,7 +284,7 @@ function App() {
                     stroke="currentColor"
                     class="size-6"
                     style={{
-                      width: "30px",
+                      width: "20px",
                     }}>
                     <path
                       stroke-linecap="round"
@@ -243,7 +299,7 @@ function App() {
                   <svg
                     class="size-6"
                     style={{
-                      width: "30px",
+                      width: "20px",
                     }}
                     viewBox="0 0 510 513"
                     fill="none"
@@ -260,11 +316,12 @@ function App() {
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
+                    onClick={handleOpenSettingsModal}
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
                     stroke="currentColor"
                     style={{
-                      width: "30px",
+                      width: "20px",
                     }}
                     class="size-6">
                     <path
@@ -379,12 +436,15 @@ function App() {
                 </div>
                 <div className="preview-area-group">
                   <div className="preview-area-group-header">
-                    <h3>Preview</h3>
-                    <button className="preview-export-button">Export</button>
-                    <button className="preview-upload-button">
-                      Upload to IPFS
-                    </button>
-                    <ul className="preview-background-color-pallet">
+                    <div class="left">
+                      <h3>Preview</h3>
+                      <button className="preview-export-button">Export</button>
+                      <button className="preview-upload-button">
+                        Upload to IPFS
+                      </button>
+                    </div>
+
+                    {/* <ul className="preview-background-color-pallet">
                       {pallets.map((pallet) => (
                         <li
                           key={pallet}
@@ -392,7 +452,10 @@ function App() {
                             }`}
                           onClick={() => handlePalletClick(pallet)}></li>
                       ))}
-                    </ul>
+                    </ul> */}
+                    <div class="right">
+                      <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange} />
+                    </div>
                   </div>
                   <iframe
                     ref={iframeRef}
@@ -408,13 +471,56 @@ function App() {
             </>
           ) : (
             <div className="no-module-message">
-              <img src="https://kaiten.ai/wp-content/uploads/2024/04/logo-icon.png" />
               <h2>Select a module or create a new one!</h2>
               <button onClick={handleOpenModal}>Create New Module</button>
             </div>
           )}
         </div>
       </div>
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onRequestClose={handleCloseSettingsModal}
+        contentLabel="Settings"
+        className="modal"
+        overlayClassName="overlay"
+      >
+        {!isLoading && (
+          <>
+            <h4 className="margin-top-0">Settings</h4>
+            <form onSubmit={handleSettingsSubmit}>
+              <label>Open AI API Key</label>
+              <input
+                type="text"
+                placeholder="Insert your Open AI API Key"
+                value={openAiApiKey}
+                onChange={handleOpenAiApiKeyChange}
+                required
+              />
+              <br />
+              <label>Pinata IPFS API Key</label>
+              <input
+                type="text"
+                placeholder="Insert your Pinata IPFS API Key"
+                value={pinataApiKey}
+                onChange={handlePinataApiKeyChange}
+                required
+              />
+              <br />
+              <div className="modal-buttons">
+                <button type="button" onClick={handleCloseSettingsModal}>Cancel</button>
+                <button type="submit">Save Settings</button>
+              </div>
+            </form>
+          </>
+        )}
+        {isLoading && (
+          <div className="loader" style={{ textAlign: "center", paddingBottom: "20px" }}>
+            <h4><b>Processing</b></h4>
+            Please wait...
+          </div>
+        )}
+      </Modal>
+
       <Modal
         isOpen={isModalOpen}
         onRequestClose={handleCloseModal}
@@ -423,7 +529,7 @@ function App() {
         overlayClassName="overlay">
         {!isLoading && (
           <>
-            <h2 className={"margin-top-0"}>Create New Module</h2>
+            <h4 className={"margin-top-0"}>Create New Module</h4>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -461,9 +567,9 @@ function App() {
           <div
             className="loader"
             style={{ textAlign: "center", paddingBottom: "20px" }}>
-            <h2>
+            <h4>
               <b>Processing</b>
-            </h2>
+            </h4>
             Please wait...
           </div>
         )}

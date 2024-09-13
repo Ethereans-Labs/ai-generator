@@ -1,5 +1,9 @@
 body {
   background-color: rgb(15, 15, 15);
+  margin:0px;
+  padding:0px;
+  width:100%;
+  max-width: 100%;
 }
 
 .App-logo {
@@ -58,10 +62,12 @@ body {
   padding: 5px 20px 5px 20px;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .preview-area-group {
   width: 100%;
+  max-width: 46%;
   display: inline-block;
   border-left: 1px solid #303030;
 }
@@ -98,7 +104,7 @@ body {
   background-color: #1f1f1f;
   display: inline-block;
   width: 10%;
-  min-width: 300px;
+  min-width: 250px;
   height: 100vh;
   border-right: 1px solid #303030;
   color: #fff;
@@ -176,43 +182,27 @@ body {
 .preview-area-group h3 {
   color: #fff;
   font-weight: 100;
-  font-size: 16px;
+  font-size: 14px;
   padding: 0px;
   margin: 15px 0px 16px 20px;
-
 }
 
 .preview-area-group-header {
   border-bottom: 1px solid #303030;
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-
-.preview-background-color-pallet {
-  padding: 0px;
-  margin: 0px;
-  position: absolute;
-  right: 10px;
-  top: -2px;
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the spacing as needed */
 }
 
-.preview-background-color-pallet li {
-  display: inline-block;
-  padding: 0px;
-  margin: 0px;
-  background-color: #ddd;
-  height: 24px;
-  width: 24px;
-  border-radius: 100px;
-  position: relative;
-  left: 0px;
-  cursor: pointer;
-}
-
-.preview-background-color-pallet li.selected {
-  border: 2px solid #d3d3d3;
-  height: 20px;
-  width: 20px;
+.right {
+  margin-left: auto;
+  margin-right: 10px;
 }
 
 .preview-background-color-pallet .pallet1 {
@@ -271,7 +261,7 @@ body {
 }
 
 .preview-upload-button {
-  position: absolute;
+  display: flex;
   right: 330px;
   top: -2px;
   background: transparent;
@@ -280,10 +270,11 @@ body {
   padding: 4px 20px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .preview-export-button {
-  position: absolute;
+  display: flex;
   right: 240px;
   top: -2px;
   background: #FDC740;
@@ -293,6 +284,7 @@ body {
   font-weight: bold;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .preview-area-output.pallet1 {
@@ -362,7 +354,7 @@ body {
 
 .navigation-tree-footer ul li {
   display: inline-block;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .console-output {
@@ -400,7 +392,7 @@ iframe {
 
 .editor-tree>ul>li>span {
   font-weight: bold;
-    font-size: 14px;
+    font-size: 12px;
     padding: 10px !important;
     display: block;
 }
@@ -424,10 +416,11 @@ iframe {
   padding: 8px 16px;
   font-weight: 100;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
 }
 .no-module-message h2{
   font-weight: 100;
+  font-size: 18px;
 }
 /* Modal Overlay */
 .overlay {
@@ -482,6 +475,7 @@ iframe {
   border: 1px solid #ccc;
   border-radius: 5px;
   color: #fff;
+  font-size: 12px;
 }
 
 /* Form Buttons */
@@ -492,6 +486,7 @@ iframe {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .modal form button[type="submit"] {
@@ -524,7 +519,7 @@ iframe {
 .sub-menu li{
   padding: 3px 0px 3px 10px!important;
   margin:0px!important;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 @media screen and (max-width: 1430px) {

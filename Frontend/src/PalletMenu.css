@@ -1,0 +1,76 @@
+.pallet-menu {
+  padding: 0px;
+  margin: 0px;
+}
+
+.preview-background-color-pallet {
+  list-style-type: none;
+  padding: 0;
+  margin: 10px 0;
+  background-color: #333;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 1000;
+}
+
+.preview-background-color-pallet li {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.selected-pallet-display {
+  cursor: pointer;
+}
+
+.selected-pallet {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+.pallet1 {
+  background: rgb(217, 182, 152);
+  background: linear-gradient(117deg, rgb(247, 194, 95) 0%, rgb(160, 80, 80) 100%);
+}
+
+.pallet2 {
+  background: rgb(217, 152, 181);
+  background: linear-gradient(117deg, rgba(217, 152, 181, 1) 0%, rgba(104, 80, 160, 1) 100%);
+}
+
+.pallet3 {
+  background: #FFBE7B;
+  background: linear-gradient(117deg, #FFBE7B 0%, #FE8CC5 100%);
+}
+
+.pallet4 {
+  background: rgb(144, 230, 168);
+  background: linear-gradient(117deg, rgb(144, 230, 168) 0%, rgb(61, 180, 128) 100%);
+}
+
+.pallet5 {
+  background: rgb(3, 3, 3);
+}
+
+.pallet6 {
+  background: rgb(255, 255, 255);
+}
+
+.pallet7 {
+  background: rgb(247, 80, 115);
+  background: linear-gradient(117deg, rgb(247, 80, 115) 0%, rgb(237, 9, 139) 100%);
+}
+
+.pallet8 {
+  background: rgb(171, 154, 254);
+  background: linear-gradient(117deg, rgb(171, 154, 254) 0%, rgb(235, 191, 249) 100%);
+}
+
+.pallet9 {
+  background: rgb(130, 179, 235);
+  background: linear-gradient(117deg, rgb(130, 179, 235) 0%, rgb(81, 83, 161) 100%);
+}

@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
           "build",
           "static",
           "js",
-          "main.3b25fac0.js"
+          "main.3e25961a.js"
         )
       );
       let cssSrc = panel.webview.asWebviewUri(
@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
           "build",
           "static",
           "css",
-          "main.5b2f14c1.css"
+          "main.bf32d633.css"
         )
       );
 
@@ -91,7 +91,7 @@ class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         "build",
         "static",
         "js",
-        "main.3b25fac0.js"
+        "main.3e25961a.js"
       )
     );
     let cssSrc = webviewView.webview.asWebviewUri(
@@ -101,7 +101,7 @@ class MyWebviewViewProvider implements vscode.WebviewViewProvider {
         "build",
         "static",
         "css",
-        "main.5b2f14c1.css"
+        "main.bf32d633.css"
       )
     );
 

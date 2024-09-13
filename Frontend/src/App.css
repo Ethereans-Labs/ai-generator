@@ -1,5 +1,9 @@
 body {
   background-color: rgb(15, 15, 15);
+  margin:0px;
+  padding:0px;
+  width:100%;
+  max-width: 100%;
 }
 
 .App-logo {
@@ -63,6 +67,7 @@ body {
 
 .preview-area-group {
   width: 100%;
+  max-width: 46%;
   display: inline-block;
   border-left: 1px solid #303030;
 }
@@ -99,7 +104,7 @@ body {
   background-color: #1f1f1f;
   display: inline-block;
   width: 10%;
-  min-width: 300px;
+  min-width: 250px;
   height: 100vh;
   border-right: 1px solid #303030;
   color: #fff;

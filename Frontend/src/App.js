@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import Modal from "react-modal";
 import PalletMenu from "./PalletMenu";
+import SecureStorage from 'secure-web-storage';
+import CryptoJS from 'crypto-js';
 
 Modal.setAppElement("#root");
 
@@ -16,13 +18,45 @@ function App() {
   const [consoleOutput, setConsoleOutput] = useState("");
   const iframeRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [newModuleName, setNewModuleName] = useState("");
   const [promptValue, setPromptValue] = useState("");
   const [newModuleFile, setNewModuleFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
-
+  const key = 'KSI-93-JJD23-JDPP-JD';
   const serviceUrl = "http://0.0.0.0:8000/api/code";
+  
+  const secureStorage = new SecureStorage(localStorage, {
+    hash: function (key) {
+      return CryptoJS.SHA256(key, key).toString();
+    },
+    encrypt: function (data) {
+      return CryptoJS.AES.encrypt(data, key).toString();
+    },
+    decrypt: function (data) {
+      return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+    }
+  });
+
+  const [openAiApiKey, setOpenAiApiKey] = useState(secureStorage.getItem('openAiApiKey') || '');
+  const [pinataApiKey, setPinataApiKey] = useState(secureStorage.getItem('pinataApiKey') || '');
+
+  const handleOpenAiApiKeyChange = (e) => {
+    setOpenAiApiKey(e.target.value);
+  };
+
+  const handlePinataApiKeyChange = (e) => {
+    setPinataApiKey(e.target.value);
+  };
+
+  const handleSettingsSubmit = (e) => {
+    e.preventDefault();
+    secureStorage.setItem('openAiApiKey', openAiApiKey);
+    secureStorage.setItem('pinataApiKey', pinataApiKey);
+
+    handleCloseSettingsModal();
+  };
 
   const applyModuleToPreview = () => {
     const module = modules[selectedModuleIndex];
@@ -79,15 +113,15 @@ function App() {
 
   const handleEditorChange = (value) => {
     setEditorContent(value);
-    
+
     var module = modules.map((module, index) => {
       if (index === selectedModuleIndex) {
         return {
           ...module,
-          [selectedFile]: value, 
+          [selectedFile]: value,
         };
       }
-      return module; 
+      return module;
     });
 
     setModules(module);
@@ -147,10 +181,18 @@ function App() {
     setIsModalOpen(true);
   };
 
+  const handleOpenSettingsModal = () => {
+    setIsSettingsModalOpen(true);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setPromptValue("");
     setNewModuleFile(null);
+  };
+
+  const handleCloseSettingsModal = () => {
+    setIsSettingsModalOpen(false);
   };
 
   const handleModuleNameChange = (e) => {
@@ -173,10 +215,11 @@ function App() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
+            "openai-api-key":openAiApiKey
           },
           body: JSON.stringify({
             smart_contract_code: fileContent,
-            custom_instructions: promptValue,
+            custom_instructions: promptValue
           }),
         });
 
@@ -273,6 +316,7 @@ function App() {
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
+                    onClick={handleOpenSettingsModal}
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
                     stroke="currentColor"
@@ -399,7 +443,7 @@ function App() {
                         Upload to IPFS
                       </button>
                     </div>
-                    
+
                     {/* <ul className="preview-background-color-pallet">
                       {pallets.map((pallet) => (
                         <li
@@ -410,7 +454,7 @@ function App() {
                       ))}
                     </ul> */}
                     <div class="right">
-                      <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange}/>
+                      <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange} />
                     </div>
                   </div>
                   <iframe
@@ -433,6 +477,50 @@ function App() {
           )}
         </div>
       </div>
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onRequestClose={handleCloseSettingsModal}
+        contentLabel="Settings"
+        className="modal"
+        overlayClassName="overlay"
+      >
+        {!isLoading && (
+          <>
+            <h4 className="margin-top-0">Settings</h4>
+            <form onSubmit={handleSettingsSubmit}>
+              <label>Open AI API Key</label>
+              <input
+                type="text"
+                placeholder="Insert your Open AI API Key"
+                value={openAiApiKey}
+                onChange={handleOpenAiApiKeyChange}
+                required
+              />
+              <br />
+              <label>Pinata IPFS API Key</label>
+              <input
+                type="text"
+                placeholder="Insert your Pinata IPFS API Key"
+                value={pinataApiKey}
+                onChange={handlePinataApiKeyChange}
+                required
+              />
+              <br />
+              <div className="modal-buttons">
+                <button type="button" onClick={handleCloseSettingsModal}>Cancel</button>
+                <button type="submit">Save Settings</button>
+              </div>
+            </form>
+          </>
+        )}
+        {isLoading && (
+          <div className="loader" style={{ textAlign: "center", paddingBottom: "20px" }}>
+            <h4><b>Processing</b></h4>
+            Please wait...
+          </div>
+        )}
+      </Modal>
+
       <Modal
         isOpen={isModalOpen}
         onRequestClose={handleCloseModal}

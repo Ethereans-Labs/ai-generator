@@ -1,6 +1,6 @@
 {
-  "name": "webpackkainext",
-  "displayName": "webpackkainext",
+  "name": "extension",
+  "displayName": "Kaiten",
   "description": "kainext",
   "version": "0.0.1",
   "engines": {
@@ -14,24 +14,28 @@
   "contributes": {
     "commands": [
       {
-        "command": "webpackkainext.webview",
-        "title": "Run Kaiten Extension"
-      }
+        "command": "extension.webview",
+        "title": "Kaiten: New Tab"
+      },
+      {
+				"command": "extension.getGitHubUser",
+				"title": "Kaiten: Sign In"
+			}
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "webpackkainextSidebar",
-          "title": "Webpack Kai Next",
+          "id": "extensionSidebar",
+          "title": "Kaiten",
           "icon": "resources/icon.png"
         }
       ]
     },
     "views": {
-      "webpackkainextSidebar": [
+      "extensionSidebar": [
         {
-          "id": "webpackkainextSidebarView",
-          "name": "Webpack Kai View"
+          "id": "extensionSidebarView",
+          "name": "Kaiten"
         }
       ]
     }
@@ -60,5 +64,8 @@
     "webpack-cli": "^5.1.4",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.4.0"
+  },
+  "dependencies": {
+    "@octokit/rest": "^18.0.0"
   }
 }

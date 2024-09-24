@@ -1,14 +1,27 @@
 import * as vscode from "vscode";
+import { Credentials } from "./credentials";
 
-export function activate(context: vscode.ExtensionContext) {
-  console.log(
-    'Congratulations, your extension "webpackkainext" is now active!'
+export async function activate(context: vscode.ExtensionContext) {
+  const credentials = new Credentials();
+  await credentials.initialize(context);
+
+  const disposable = vscode.commands.registerCommand(
+    "extension.getGitHubUser",
+    async () => {
+      const userInfo = await credentials.signIn();
+
+      vscode.window.showInformationMessage(
+        `Kaiten: Signed In as '${userInfo.data.login}'`
+      );
+    }
   );
+
+  context.subscriptions.push(disposable);
 
   // Register the command for the webview
   let webview = vscode.commands.registerCommand(
-    "webpackkainext.webview",
-    () => {
+    "extension.webview",
+    async () => {
       let panel = vscode.window.createWebviewPanel(
         "webview",
         "Kaiten",
@@ -60,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register the webview view provider for the sidebar
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      "webpackkainextSidebarView",
+      "extensionSidebarView",
       new MyWebviewViewProvider(context)
     )
   );

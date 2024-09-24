@@ -1,0 +1,41 @@
+// See https://go.microsoft.com/fwlink/?LinkId=733558
+// for the documentation about the tasks.json format
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "compile",
+			"problemMatcher": [
+				"$ts-webpack",
+				"$tslint-webpack"
+			],
+			"path": "/VSCodePlugin",
+			"isBackground": false,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "watch",
+			"problemMatcher": [
+				"$ts-webpack-watch",
+				"$tslint-webpack-watch"
+			],
+			"path": "/VSCodePlugin",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			}
+		}
+	]
+}

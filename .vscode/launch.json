@@ -12,6 +12,20 @@
             "cwd": "${workspaceFolder}/Backend",
             "jinja": true,
             "justMyCode": false,
+        },
+        {
+            "name": "Extension Debugging",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/VSCodePlugin"
+            ],
+            "cwd": "${workspaceFolder}/VSCodePlugin",
+            "outFiles": [
+                "${workspaceFolder}/VSCodePlugin/**/*.js"
+            ],
+            "preLaunchTask": "npm: compile"
         }
     ]
 }

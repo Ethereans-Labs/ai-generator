@@ -417,6 +417,7 @@ iframe {
   font-weight: 100;
   border-radius: 6px;
   font-size: 14px;
+  cursor: pointer;
 }
 .no-module-message h2{
   font-weight: 100;
@@ -544,4 +545,29 @@ iframe {
   .preview-area-group{
     display: none;
   }
+}
+.import-module{
+  background-color: transparent!important;
+  color: #c8c8c8!important;
+  font-weight: 200;
+}
+.home-area-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 16px; /* Adjust as needed */
+  width: 200px;
+  margin:20px auto 10px auto;
+  opacity: 0.7;
+}
+
+.home-area-separator::before,
+.home-area-separator::after {
+  content: "";
+  flex-grow: 1;
+  height: 1px;
+  background-color: #fdfdfd; 
+  margin: 0 10px; 
+  width: 20px; 
 }

@@ -111,6 +111,35 @@ function App() {
     setCurrentFileType(file.split(".").pop().toUpperCase());
   };
 
+  const handleExportClick = () => {
+    const activeModule = modules[selectedModuleIndex]; // Get the active module
+    const jsonString = JSON.stringify(activeModule);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "active_module.json"; // Name the file
+    link.click();
+  
+    URL.revokeObjectURL(url); // Clean up the URL object
+  };
+
+  const handlePreviewClick = () => {
+    const selectedModule = modules[selectedModuleIndex];
+
+    const contentObject = {
+      html: selectedModule['module.html'],
+      css: selectedModule['module.css'],
+      script: selectedModule['module.js'],
+    };
+  
+    const jsonString = JSON.stringify(contentObject);
+    const base64Content = btoa(jsonString);
+    const previewUrl = `http://localhost:4200/preview?content=${base64Content}`;
+    window.open(previewUrl, '_blank');
+  };
+  
   const handleEditorChange = (value) => {
     setEditorContent(value);
 
@@ -175,6 +204,28 @@ function App() {
     setSelectedFile(null);
     setEditorContent("");
     setConsoleOutput("");
+  };
+
+  const handleImportChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedModule = JSON.parse(event.target.result);
+
+          const updatedModules = [...modules];
+          updatedModules.push(importedModule);
+          setModules(updatedModules);
+          alert("Module imported successfully!");
+        } catch (error) {
+          console.error("Error importing module:", error);
+          alert("Failed to import the module. Please ensure it's a valid JSON file.");
+        }
+      };
+  
+      reader.readAsText(file);
+    }
   };
 
   const handleOpenModal = () => {
@@ -257,7 +308,7 @@ function App() {
     "pallet9",
   ];
 
-  const [selectedPallet, setSelectedPallet] = useState(pallets[0]); // Default to first pallet
+  const [selectedPallet, setSelectedPallet] = useState(pallets[0]);
 
   const handlePalletChange = (pallet) => {
     setSelectedPallet(pallet);
@@ -438,7 +489,8 @@ function App() {
                   <div className="preview-area-group-header">
                     <div class="left">
                       <h3>Preview</h3>
-                      <button className="preview-export-button">Export</button>
+                      <button className="preview-export-button" onClick={() => handleExportClick()}>Export</button>
+                      <button className="preview-export-button" onClick={() => handlePreviewClick()}>Preview</button>
                       <button className="preview-upload-button">
                         Upload to IPFS
                       </button>
@@ -471,8 +523,19 @@ function App() {
             </>
           ) : (
             <div className="no-module-message">
-              <h2>Select a module or create a new one!</h2>
+              <h2>Import a module or Create a new one!</h2>
               <button onClick={handleOpenModal}>Create New Module</button>
+              <div className="home-area-separator">or</div>
+              <button className="import-module" onClick={() => document.getElementById('importHomeModule').click()}>
+                Import Module
+              </button>
+              <input
+                  type="file"
+                  id="importHomeModule"
+                  accept="application/json"
+                  style={{ display: 'none' }}
+                  onChange={handleImportChange}
+                />
             </div>
           )}
         </div>
@@ -494,7 +557,7 @@ function App() {
                 placeholder="Insert your Open AI API Key"
                 value={openAiApiKey}
                 onChange={handleOpenAiApiKeyChange}
-                required
+                
               />
               <br />
               <label>Pinata IPFS API Key</label>
@@ -503,7 +566,7 @@ function App() {
                 placeholder="Insert your Pinata IPFS API Key"
                 value={pinataApiKey}
                 onChange={handlePinataApiKeyChange}
-                required
+                
               />
               <br />
               <div className="modal-buttons">

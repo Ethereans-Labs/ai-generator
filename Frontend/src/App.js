@@ -134,7 +134,7 @@ function App() {
   };
 
   const handleEditorChange = (value) => {
-   
+
     setEditorContent(value);
 
     const updatedModules = modules.map((module, index) => {
@@ -283,7 +283,7 @@ function App() {
             break;
           case 'fileDropped':
             console.log(`File dropped: ${message.fileName}`, message.content);
-  
+
             setModules((prevModules) => {
               const updatedModules = [
                 ...prevModules,
@@ -303,9 +303,9 @@ function App() {
         }
       }
     };
-  
+
     window.addEventListener('message', handleMessage);
-  
+
     return () => {
       window.removeEventListener('message', handleMessage);
     };

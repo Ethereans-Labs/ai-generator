@@ -5,11 +5,10 @@ import path from "path";
 export async function activate(context: vscode.ExtensionContext) {
     try {
         console.log("Activating Kaiten extension");
-
         const credentials = new Credentials();
         await credentials.initialize(context);
         console.log("Credentials initialized successfully");
-        
+
         const signInCommand = vscode.commands.registerCommand(
             "extension.getGitHubUser",
             async () => {
@@ -26,8 +25,6 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         context.subscriptions.push(signInCommand);
         console.log("Sign-in command registered");
-
-        // Command to preview a URL
         const previewCommand = vscode.commands.registerCommand(
             'extension.preview',
             async (previewUrl: string) => {
@@ -53,7 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         context.subscriptions.push(webviewCommand);
         console.log("Webview command registered");
-        
+
         // Register the webview view provider for the sidebar
         context.subscriptions.push(
             vscode.window.registerWebviewViewProvider(
@@ -168,7 +165,7 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
         console.log("calleeed called");
-      
+
     }
 
     public resolveWebviewView(
@@ -178,12 +175,12 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
     ) {
         console.log("resolveWebviewView called");
         this._view = webviewView;
-    
+
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [this._context.extensionUri],
         };
-    
+
         webviewView.webview.html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -395,15 +392,12 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
                 </li>
               </ul>
             </div>
-  <ul id="file-list"></ul>
+            <ul id="file-list"></ul>
             <div class="editor-tree" onClick="event.stopPropagation()">
-                <ul id="module-list">
-                    <!-- Modules will be rendered here -->
-                </ul>
+                <ul id="module-list"></ul>
             </div>
             <script>
                 const vscode = acquireVsCodeApi();
-
 
                  function renderModules(modules) {
                     const moduleList = document.getElementById('module-list');
@@ -504,40 +498,38 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
             </script>
         </body>
         </html>`;
-    
-        // Ensure files are sent to the webview
+
         this.sendFilesToWebview();
 
         this._view.webview.onDidReceiveMessage(
             async (message) => {
-              switch (message.command) {
-                case "openFile":
-                    this.handleOpenFile(message.filePath);
-                break;
-                case 'openModal':
-                case 'openSettingsModal':
-                  let panel = WebviewManager.getInstance().getPanel();
-                  if (!panel) {
-                    await vscode.commands.executeCommand('extension.webview');
-                    panel = WebviewManager.getInstance().getPanel();
-                    if (!panel) {
-                      console.error('Failed to create webview panel');
-                      return;
-                    }
-                  }
-                  panel.webview.postMessage(message);
-                  break;
+                switch (message.command) {
+                    case "openFile":
+                        this.handleOpenFile(message.filePath);
+                        break;
+                    case 'openModal':
+                    case 'openSettingsModal':
+                        let panel = WebviewManager.getInstance().getPanel();
+                        if (!panel) {
+                            await vscode.commands.executeCommand('extension.webview');
+                            panel = WebviewManager.getInstance().getPanel();
+                            if (!panel) {
+                                console.error('Failed to create webview panel');
+                                return;
+                            }
+                        }
+                        panel.webview.postMessage(message);
+                        break;
 
-                  case 'requestModules':
+                    case 'requestModules':
                         // Send modules to webview
                         this.sendModulesToWebview(this._modules);
                         break;
-                // Handle other commands if needed
-              }
+                }
             },
             undefined,
             this._context.subscriptions
-          );
+        );
     }
 
     public sendModulesToWebview(modules: any[]) {
@@ -555,8 +547,6 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 
             // Get the webview panel for the React app
             let panel = WebviewManager.getInstance().getPanel();
-
-            // If the panel doesn't exist, create it
             if (!panel) {
                 await vscode.commands.executeCommand('extension.webview');
                 panel = WebviewManager.getInstance().getPanel();
@@ -565,8 +555,6 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
                     return;
                 }
             }
-
-            // Send the file name and content to the React app
             panel.webview.postMessage({
                 command: 'fileDropped',
                 fileName: path.basename(filePath),
@@ -578,17 +566,12 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
             vscode.window.showErrorMessage("Failed to open the selected file.");
         }
     }
-    
-    
 
-    /**
-     * Retrieves the list of files in the workspace and sends them to the webview.
-     */
     private async sendFilesToWebview() {
         if (!this._view) {
             return;
         }
-    
+
         /**
          * Convert a flat list of files into a tree structure.
          * @param files Array of `vscode.Uri` objects representing files.
@@ -596,11 +579,11 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
          */
         const getTreeStructure = (files: vscode.Uri[]) => {
             const root: any = {};
-    
+
             files.forEach((fileUri) => {
                 const parts = vscode.workspace.asRelativePath(fileUri.fsPath).split("/");
                 let current = root;
-    
+
                 parts.forEach((part, index) => {
                     if (!current[part]) {
                         current[part] = index === parts.length - 1
@@ -610,7 +593,7 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
                     current = current[part].children || current[part];
                 });
             });
-    
+
             const convertToArray = (node: any): FileNode[] =>
                 Object.entries(node).map(([name, value]: [string, any]) => ({
                     name,
@@ -618,34 +601,25 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
                     path: value.path || null,
                     children: value.type === "directory" ? convertToArray(value.children) : [],
                 }));
-    
+
             return convertToArray(root);
         };
-    
+
         try {
-            // Retrieve all files and directories, excluding `node_modules`.
             const files = await vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
-    
-            // Convert the list of files into a tree structure.
             const fileTree = getTreeStructure(files);
-    
-            // Send the tree structure to the webview.
             this._view.webview.postMessage({
                 command: "setFiles",
                 files: fileTree,
             });
         } catch (error) {
             console.error("Error retrieving workspace files:", error);
-            // Notify the webview of the error.
             this._view.webview.postMessage({
                 command: "error",
                 message: "Failed to retrieve workspace files.",
             });
         }
     }
-    
-    
-    
 
     /**
      * Opens a file in the editor based on the provided file path.
@@ -694,4 +668,4 @@ class WebviewManager {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

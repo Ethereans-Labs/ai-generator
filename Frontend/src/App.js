@@ -5,6 +5,8 @@ import Modal from "react-modal";
 import PalletMenu from "./PalletMenu";
 import SecureStorage from 'secure-web-storage';
 import CryptoJS from 'crypto-js';
+import JSZip from 'jszip';
+//import compile from "./multiverse-main";
 
 Modal.setAppElement("#root");
 
@@ -24,9 +26,17 @@ function App() {
   const [newModuleFile, setNewModuleFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
+  const [notification, setNotification] = useState({ message: "", isOpen: false });
   const key = 'KSI-93-JJD23-JDPP-JD';
   const serviceUrl = "http://0.0.0.0:8000/api/code";
-  
+
+  const showNotification = (message) => {
+    setNotification({ message, isOpen: true });
+    setTimeout(() => {
+      setNotification({ message: "", isOpen: false });
+    }, 3000);
+  };
+
   const secureStorage = new SecureStorage(localStorage, {
     hash: function (key) {
       return CryptoJS.SHA256(key, key).toString();
@@ -57,7 +67,6 @@ function App() {
 
     handleCloseSettingsModal();
   };
-
   const applyModuleToPreview = () => {
     const module = modules[selectedModuleIndex];
     const iframe = iframeRef.current;
@@ -72,23 +81,7 @@ function App() {
           </head>
           <body>
             ${module["module.html"]}
-            <script>
-              (function() {
-                var console = {
-                  log: function(message) {
-                    window.parent.postMessage({ type: 'log', message: message }, '*');
-                  },
-                  error: function(message) {
-                    window.parent.postMessage({ type: 'error', message: message }, '*');
-                  }
-                };
-                try {
-                  ${module["module.js"]}
-                } catch (e) {
-                  window.parent.postMessage({ type: 'error', message: e.message }, '*');
-                }
-              })();
-            </script>
+            <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
           </body>
         </html>
       `);
@@ -112,38 +105,39 @@ function App() {
   };
 
   const handleExportClick = () => {
-    const activeModule = modules[selectedModuleIndex]; // Get the active module
+    const activeModule = modules[selectedModuleIndex];
+    const zip = new JSZip();
     const jsonString = JSON.stringify(activeModule);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-  
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "active_module.json"; // Name the file
-    link.click();
-  
-    URL.revokeObjectURL(url); // Clean up the URL object
+    zip.file("module.json", jsonString);
+
+    zip.generateAsync({ type: "blob" }).then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "module.zip";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   const handlePreviewClick = () => {
     const selectedModule = modules[selectedModuleIndex];
-
     const contentObject = {
       html: selectedModule['module.html'],
       css: selectedModule['module.css'],
       script: selectedModule['module.js'],
     };
-  
     const jsonString = JSON.stringify(contentObject);
     const base64Content = btoa(jsonString);
-    const previewUrl = `http://localhost:4200/preview?content=${base64Content}`;
+    const previewUrl = `http://127.0.0.1:3000/#/defiset/${base64Content}`;
     window.open(previewUrl, '_blank');
   };
-  
+
   const handleEditorChange = (value) => {
+   
     setEditorContent(value);
 
-    var module = modules.map((module, index) => {
+    const updatedModules = modules.map((module, index) => {
       if (index === selectedModuleIndex) {
         return {
           ...module,
@@ -153,7 +147,8 @@ function App() {
       return module;
     });
 
-    setModules(module);
+    setModules(updatedModules);
+    vscode.postMessage({ command: 'updateModules', modules: updatedModules });
 
     const iframe = iframeRef.current;
     if (iframe) {
@@ -198,6 +193,31 @@ function App() {
     }
   }, [editorContent, selectedFile]);
 
+  useEffect(() => {
+    const handleMessage = (event) => {
+      const message = event.data;
+      if (message && message.command) {
+        switch (message.command) {
+          case 'moduleClicked':
+            handleModuleClick(message.moduleIndex);
+            break;
+          case 'fileClicked':
+            setSelectedModuleIndex(message.moduleIndex);
+            handleFileClick(message.fileName);
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [modules, selectedModuleIndex]);
+
   const closeModule = () => {
     setSelectedModule(null);
     setSelectedModuleIndex(null);
@@ -206,27 +226,39 @@ function App() {
     setConsoleOutput("");
   };
 
+
   const handleImportChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
-          const importedModule = JSON.parse(event.target.result);
-
+          const zip = new JSZip();
+          const zipContent = await zip.loadAsync(event.target.result);
+          const jsonContent = await zipContent.file("module.json").async("string");
+          const importedModule = JSON.parse(jsonContent);
           const updatedModules = [...modules];
           updatedModules.push(importedModule);
           setModules(updatedModules);
-          alert("Module imported successfully!");
+          showNotification("Module imported successfully!");
         } catch (error) {
           console.error("Error importing module:", error);
-          alert("Failed to import the module. Please ensure it's a valid JSON file.");
+          alert("Failed to import the module. Please ensure it's a valid zip file containing module.json.");
         }
       };
-  
-      reader.readAsText(file);
+
+      reader.readAsArrayBuffer(file);
     }
   };
+
+  window.addEventListener('message', (event) => {
+    const message = event.data;
+    switch (message.command) {
+      case 'fileDropped':
+        console.log(`File dropped: ${message.fileName}`, message.content);
+        break;
+    }
+  });
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -235,6 +267,49 @@ function App() {
   const handleOpenSettingsModal = () => {
     setIsSettingsModalOpen(true);
   };
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      const message = event.data;
+      if (message && message.command) {
+        switch (message.command) {
+          case 'homeButtonClick':
+            break;
+          case 'openModal':
+            handleOpenModal();
+            break;
+          case 'openSettingsModal':
+            handleOpenSettingsModal();
+            break;
+          case 'fileDropped':
+            console.log(`File dropped: ${message.fileName}`, message.content);
+  
+            setModules((prevModules) => {
+              const updatedModules = [
+                ...prevModules,
+                {
+                  prompt: '',
+                  'module.html': message.content,
+                  'module.css': '',
+                  'module.js': '',
+                },
+              ];
+
+              return updatedModules;
+            });
+            break;
+          default:
+            break;
+        }
+      }
+    };
+  
+    window.addEventListener('message', handleMessage);
+  
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [handleOpenModal, handleOpenSettingsModal, setModules]);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -266,7 +341,7 @@ function App() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            "openai-api-key":openAiApiKey
+            "openai-api-key": openAiApiKey
           },
           body: JSON.stringify({
             smart_contract_code: fileContent,
@@ -285,10 +360,11 @@ function App() {
               "module.js": result.javascript,
             },
           ]);
-          //handleModuleClick(newModuleName);
+
           handleCloseModal();
         } else {
-          console.error("Error:", response.statusText);
+          const result = await response.json();
+          showNotification(result.detail + '!');
         }
         setIsLoading(false);
       };
@@ -416,32 +492,6 @@ function App() {
                 ))}
               </ul>
             </div>
-            <div className="navigation-tree-footer">
-              <ul>
-                <li>&copy; Copyright 2024 Kaiten</li>
-                <li>
-                  <svg
-                    fill="#000"
-                    height="10px"
-                    width="10px"
-                    version="1.1"
-                    id="Capa_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 490 490">
-                    <g>
-                      <g>
-                        <path d="M245,0C109.5,0,0,109.5,0,245s109.5,245,245,245s245-109.5,245-245S380.5,0,245,0z M245,449.3 c-112.6,0-204.3-91.7-204.3-204.3S132.4,40.7,245,40.7S449.3,132.4,449.3,245S357.6,449.3,245,449.3z" />
-                        <path d="M290.9,224.1h-25v-95.9c0-11.5-9.4-20.9-20.9-20.9s-20.9,9.4-20.9,20.9V245c0,11.5,9.4,20.9,20.9,20.9h45.9 c11.5,0,20.9-9.4,20.9-20.9S302.3,224.1,290.9,224.1z" />
-                      </g>
-                    </g>
-                  </svg>{" "}
-                  20ms
-                </li>
-                <li>
-                  <b>{currentFileType}</b>
-                </li>
-              </ul>
-            </div>
           </div>
           {selectedModule ? (
             <>
@@ -451,25 +501,36 @@ function App() {
                     <ul>
                       <li
                         className={
-                          selectedFile === "module.html" ? "active-file" : ""
+                          selectedFile === "file.extension" ? "active-file" : ""
                         }
                         onClick={() => handleFileClick("module.html")}>
-                        module.html
+                        fileName
                       </li>
-                      <li
-                        className={
-                          selectedFile === "module.css" ? "active-file" : ""
-                        }
-                        onClick={() => handleFileClick("module.css")}>
-                        module.css
-                      </li>
-                      <li
-                        className={
-                          selectedFile === "module.js" ? "active-file" : ""
-                        }
-                        onClick={() => handleFileClick("module.js")}>
-                        module.js
-                      </li>
+                      {selectedModule['module.html'] != '' ?? (
+                        <li
+                          className={
+                            selectedFile === "module.html" ? "active-file" : ""
+                          }
+                          onClick={() => handleFileClick("module.html")}>
+                          module.html
+                        </li>)}
+
+                      {selectedModule['module.css'] != '' ?? (
+                        <li
+                          className={
+                            selectedFile === "module.css" ? "active-file" : ""
+                          }
+                          onClick={() => handleFileClick("module.css")}>
+                          module.css
+                        </li>)}
+                      {selectedModule['module.js'] != '' ?? (
+                        <li
+                          className={
+                            selectedFile === "module.js" ? "active-file" : ""
+                          }
+                          onClick={() => handleFileClick("module.js")}>
+                          module.js
+                        </li>)}
                     </ul>
                   </div>
                   <div className="editor-area">
@@ -485,40 +546,33 @@ function App() {
                     )}
                   </div>
                 </div>
-                <div className="preview-area-group">
-                  <div className="preview-area-group-header">
-                    <div class="left">
-                      <h3>Preview</h3>
-                      <button className="preview-export-button" onClick={() => handleExportClick()}>Export</button>
-                      <button className="preview-export-button" onClick={() => handlePreviewClick()}>Preview</button>
-                      <button className="preview-upload-button">
-                        Upload to IPFS
-                      </button>
-                    </div>
+                {(selectedModule['module.html'] != '' && selectedModule['module.css'] != '' && selectedModule['module.js'] != '') ?? (
+                  <div className="preview-area-group">
+                    <div className="preview-area-group-header">
+                      <div class="left">
+                        <h3>Preview</h3>
+                        <button className="preview-export-button" onClick={() => handleExportClick()}>Export</button>
+                        <button className="preview-export-button" onClick={() => handlePreviewClick()}>Preview</button>
+                        <button className="preview-upload-button">
+                          Upload to IPFS
+                        </button>
+                      </div>
+                      <div class="right">
+                        <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange} />
 
-                    {/* <ul className="preview-background-color-pallet">
-                      {pallets.map((pallet) => (
-                        <li
-                          key={pallet}
-                          className={`${pallet} ${palletColor === pallet ? "selected" : ""
-                            }`}
-                          onClick={() => handlePalletClick(pallet)}></li>
-                      ))}
-                    </ul> */}
-                    <div class="right">
-                      <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange} />
+                      </div>
+                    </div>
+                    <iframe
+                      ref={iframeRef}
+                      title="Preview"
+                      className={`preview-area-output ${palletColor}`}
+                    />
+                    <div className="console-output">
+                      <h3>Console Output</h3>
+                      <pre>{consoleOutput}</pre>
                     </div>
                   </div>
-                  <iframe
-                    ref={iframeRef}
-                    title="Preview"
-                    className={`preview-area-output ${palletColor}`}
-                  />
-                  <div className="console-output">
-                    <h3>Console Output</h3>
-                    <pre>{consoleOutput}</pre>
-                  </div>
-                </div>
+                )}
               </div>
             </>
           ) : (
@@ -530,12 +584,12 @@ function App() {
                 Import Module
               </button>
               <input
-                  type="file"
-                  id="importHomeModule"
-                  accept="application/json"
-                  style={{ display: 'none' }}
-                  onChange={handleImportChange}
-                />
+                type="file"
+                id="importHomeModule"
+                accept="application/zip"
+                style={{ display: 'none' }}
+                onChange={handleImportChange}
+              />
             </div>
           )}
         </div>
@@ -557,7 +611,7 @@ function App() {
                 placeholder="Insert your Open AI API Key"
                 value={openAiApiKey}
                 onChange={handleOpenAiApiKeyChange}
-                
+
               />
               <br />
               <label>Pinata IPFS API Key</label>
@@ -566,7 +620,7 @@ function App() {
                 placeholder="Insert your Pinata IPFS API Key"
                 value={pinataApiKey}
                 onChange={handlePinataApiKeyChange}
-                
+
               />
               <br />
               <div className="modal-buttons">
@@ -637,6 +691,12 @@ function App() {
           </div>
         )}
       </Modal>
+      {notification.isOpen && (
+        <div className="notification-popup">
+          <p>{notification.message}</p>
+        </div>
+      )}
+
     </div>
   );
 }

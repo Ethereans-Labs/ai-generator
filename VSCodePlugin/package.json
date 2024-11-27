@@ -1,15 +1,19 @@
 {
-  "name": "extension",
+  "name": "kaiten",
   "displayName": "Kaiten",
-  "description": "kainext",
+  "description": "Kaiten Extension to display workspace files in the sidebar.",
   "version": "0.0.1",
+  "publisher": "beatdata",
   "engines": {
     "vscode": "^1.91.0"
   },
-  "categories": [
-    "Other"
+  "categories": ["Other"],
+  "activationEvents": [
+    "onView:kaiten.extensionSidebarView",
+    "onCommand:extension.getGitHubUser",
+    "onCommand:extension.preview",
+    "onCommand:extension.webview"
   ],
-  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -18,9 +22,13 @@
         "title": "Kaiten: New Tab"
       },
       {
-				"command": "extension.getGitHubUser",
-				"title": "Kaiten: Sign In"
-			}
+        "command": "extension.getGitHubUser",
+        "title": "Kaiten: Sign In"
+      },
+      {
+        "command": "extension.preview",
+        "title": "Kaiten: Preview"
+      }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -34,11 +42,13 @@
     "views": {
       "extensionSidebar": [
         {
-          "id": "extensionSidebarView",
+          "type": "webview",
+          "id": "kaiten.extensionSidebarView", 
           "name": "Kaiten"
         }
       ]
     }
+
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -67,5 +77,6 @@
   },
   "dependencies": {
     "@octokit/rest": "^18.0.0"
-  }
+  },
+  "enabledApiProposals": ["extensionRuntime"]
 }

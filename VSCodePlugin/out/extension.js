@@ -32,15 +32,6 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -51,72 +42,61 @@ const vscode = __importStar(require("vscode"));
 const credentials_1 = require("./credentials");
 const path_1 = __importDefault(require("path"));
 const multiverse = require('./multiverse-main');
-function activate(context) {
-    return __awaiter(this, void 0, void 0, function* () {
+async function activate(context) {
+    try {
+        console.log("Activating Kaiten extension");
+        const credentials = new credentials_1.Credentials();
+        await credentials.initialize(context);
+        console.log("Credentials initialized successfully");
         try {
-            console.log("Activating Kaiten extension");
-            const credentials = new credentials_1.Credentials();
-            yield credentials.initialize(context);
-            console.log("Credentials initialized successfully");
-            // Locate the 'code.sol' file in the workspace
-            const contractFileName = "code.sol";
-            const files = yield vscode.workspace.findFiles(`**/${contractFileName}`, "**/node_modules/**", 1);
-            if (files.length === 0) {
-                throw new Error(`"${contractFileName}" not found in the workspace.`);
-            }
-            const contractUri = files[0];
-            const contractPath = contractUri.fsPath;
-            console.log(`Found "${contractFileName}" at: ${contractPath}`);
-            try {
-                const compiledContract = yield multiverse.compile(contractPath, // Use the dynamic path
-                "MyContract", // Ensure this matches the contract name in 'code.sol'
-                "0.8.0", false);
-                console.log("Compilation successful:", compiledContract);
-            }
-            catch (error) {
-                console.error("Compilation failed:", error);
-            }
-            const signInCommand = vscode.commands.registerCommand("extension.getGitHubUser", () => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const userInfo = yield credentials.signIn();
-                    vscode.window.showInformationMessage(`Kaiten: Signed In as '${userInfo.data.login}'`);
-                }
-                catch (error) {
-                    console.error("Sign-in error:", error);
-                    vscode.window.showErrorMessage("Failed to sign in to GitHub.");
-                }
-            }));
-            context.subscriptions.push(signInCommand);
-            console.log("Sign-in command registered");
-            const previewCommand = vscode.commands.registerCommand('extension.preview', (previewUrl) => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    yield vscode.env.openExternal(vscode.Uri.parse(previewUrl));
-                    console.log('Preview URL opened:', previewUrl);
-                }
-                catch (error) {
-                    console.error('Error opening preview URL:', error);
-                    vscode.window.showErrorMessage('Failed to open the preview URL.');
-                }
-            }));
-            context.subscriptions.push(previewCommand);
-            console.log("Preview command registered");
-            // Command to create a webview panel
-            const webviewCommand = vscode.commands.registerCommand("extension.webview", () => __awaiter(this, void 0, void 0, function* () {
-                createWebviewPanel(context);
-                console.log("Webview command executed");
-            }));
-            context.subscriptions.push(webviewCommand);
-            console.log("Webview command registered");
-            // Register the webview view provider for the sidebar
-            context.subscriptions.push(vscode.window.registerWebviewViewProvider("kaiten.extensionSidebarView", // Updated to match the unique ID
-            new ColorsViewProvider(context)));
-            console.log("WebviewViewProvider registered for 'kaiten.extensionSidebarView'");
+            const compile = multiverse.compile;
+            // Usage
+            const compiledContract = await compile("contracts/MyContract.sol", "MyContract", "0.8.0", false);
+            console.log("Compilation successful:", compiledContract);
         }
         catch (error) {
-            console.error("Error during extension activation:", error);
-            vscode.window.showErrorMessage("Kaiten: Failed to activate the extension.");
+            console.error("Compilation failed:", error);
         }
-    });
+        const signInCommand = vscode.commands.registerCommand("extension.getGitHubUser", async () => {
+            try {
+                const userInfo = await credentials.signIn();
+                vscode.window.showInformationMessage(`Kaiten: Signed In as '${userInfo.data.login}'`);
+            }
+            catch (error) {
+                console.error("Sign-in error:", error);
+                vscode.window.showErrorMessage("Failed to sign in to GitHub.");
+            }
+        });
+        context.subscriptions.push(signInCommand);
+        console.log("Sign-in command registered");
+        const previewCommand = vscode.commands.registerCommand('extension.preview', async (previewUrl) => {
+            try {
+                await vscode.env.openExternal(vscode.Uri.parse(previewUrl));
+                console.log('Preview URL opened:', previewUrl);
+            }
+            catch (error) {
+                console.error('Error opening preview URL:', error);
+                vscode.window.showErrorMessage('Failed to open the preview URL.');
+            }
+        });
+        context.subscriptions.push(previewCommand);
+        console.log("Preview command registered");
+        // Command to create a webview panel
+        const webviewCommand = vscode.commands.registerCommand("extension.webview", async () => {
+            createWebviewPanel(context);
+            console.log("Webview command executed");
+        });
+        context.subscriptions.push(webviewCommand);
+        console.log("Webview command registered");
+        // Register the webview view provider for the sidebar
+        context.subscriptions.push(vscode.window.registerWebviewViewProvider("kaiten.extensionSidebarView", // Updated to match the unique ID
+        new ColorsViewProvider(context)));
+        console.log("WebviewViewProvider registered for 'kaiten.extensionSidebarView'");
+    }
+    catch (error) {
+        console.error("Error during extension activation:", error);
+        vscode.window.showErrorMessage("Kaiten: Failed to activate the extension.");
+    }
 }
 function createWebviewPanel(context) {
     const panel = vscode.window.createWebviewPanel("webview", "Kaiten", vscode.ViewColumn.One, {
@@ -170,8 +150,10 @@ function createWebviewPanel(context) {
     }, undefined, context.subscriptions);
 }
 class ColorsViewProvider {
+    _context;
+    _view;
+    _modules = [];
     constructor(context) {
-        this._modules = [];
         this._context = context;
         console.log("calleeed called");
     }
@@ -500,7 +482,7 @@ class ColorsViewProvider {
         </body>
         </html>`;
         this.sendFilesToWebview();
-        this._view.webview.onDidReceiveMessage((message) => __awaiter(this, void 0, void 0, function* () {
+        this._view.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case "openFile":
                     this.handleOpenFile(message.filePath);
@@ -509,7 +491,7 @@ class ColorsViewProvider {
                 case 'openSettingsModal':
                     let panel = WebviewManager.getInstance().getPanel();
                     if (!panel) {
-                        yield vscode.commands.executeCommand('extension.webview');
+                        await vscode.commands.executeCommand('extension.webview');
                         panel = WebviewManager.getInstance().getPanel();
                         if (!panel) {
                             console.error('Failed to create webview panel');
@@ -523,7 +505,7 @@ class ColorsViewProvider {
                     this.sendModulesToWebview(this._modules);
                     break;
             }
-        }), undefined, this._context.subscriptions);
+        }, undefined, this._context.subscriptions);
     }
     sendModulesToWebview(modules) {
         this._modules = modules;
@@ -531,101 +513,98 @@ class ColorsViewProvider {
             this._view.webview.postMessage({ command: 'updateModules', modules: modules });
         }
     }
-    handleOpenFile(filePath) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const fileUri = vscode.Uri.file(filePath);
-                const fileContent = yield vscode.workspace.fs.readFile(fileUri);
-                const content = Buffer.from(fileContent).toString('utf8');
-                // Get the webview panel for the React app
-                let panel = WebviewManager.getInstance().getPanel();
+    async handleOpenFile(filePath) {
+        try {
+            const fileUri = vscode.Uri.file(filePath);
+            const fileContent = await vscode.workspace.fs.readFile(fileUri);
+            const content = Buffer.from(fileContent).toString('utf8');
+            // Get the webview panel for the React app
+            let panel = WebviewManager.getInstance().getPanel();
+            if (!panel) {
+                await vscode.commands.executeCommand('extension.webview');
+                panel = WebviewManager.getInstance().getPanel();
                 if (!panel) {
-                    yield vscode.commands.executeCommand('extension.webview');
-                    panel = WebviewManager.getInstance().getPanel();
-                    if (!panel) {
-                        console.error('Failed to create webview panel');
-                        return;
-                    }
+                    console.error('Failed to create webview panel');
+                    return;
                 }
-                panel.webview.postMessage({
-                    command: 'fileDropped',
-                    fileName: path_1.default.basename(filePath),
-                    content: content
-                });
             }
-            catch (error) {
-                console.error("Error opening file:", error);
-                vscode.window.showErrorMessage("Failed to open the selected file.");
-            }
-        });
+            panel.webview.postMessage({
+                command: 'fileDropped',
+                fileName: path_1.default.basename(filePath),
+                content: content
+            });
+        }
+        catch (error) {
+            console.error("Error opening file:", error);
+            vscode.window.showErrorMessage("Failed to open the selected file.");
+        }
     }
-    sendFilesToWebview() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this._view) {
-                return;
-            }
-            /**
-             * Convert a flat list of files into a tree structure.
-             * @param files Array of `vscode.Uri` objects representing files.
-             * @returns A nested tree structure.
-             */
-            const getTreeStructure = (files) => {
-                const root = {};
-                files.forEach((fileUri) => {
-                    const parts = vscode.workspace.asRelativePath(fileUri.fsPath).split("/");
-                    let current = root;
-                    parts.forEach((part, index) => {
-                        if (!current[part]) {
-                            current[part] = index === parts.length - 1
-                                ? { path: fileUri.fsPath, type: "file" }
-                                : { type: "directory", children: {} };
-                        }
-                        current = current[part].children || current[part];
-                    });
+    async sendFilesToWebview() {
+        if (!this._view) {
+            return;
+        }
+        /**
+         * Convert a flat list of files into a tree structure.
+         * @param files Array of `vscode.Uri` objects representing files.
+         * @returns A nested tree structure.
+         */
+        const getTreeStructure = (files) => {
+            const root = {};
+            files.forEach((fileUri) => {
+                const parts = vscode.workspace.asRelativePath(fileUri.fsPath).split("/");
+                let current = root;
+                parts.forEach((part, index) => {
+                    if (!current[part]) {
+                        current[part] = index === parts.length - 1
+                            ? { path: fileUri.fsPath, type: "file" }
+                            : { type: "directory", children: {} };
+                    }
+                    current = current[part].children || current[part];
                 });
-                const convertToArray = (node) => Object.entries(node).map(([name, value]) => ({
-                    name,
-                    type: value.type,
-                    path: value.path || null,
-                    children: value.type === "directory" ? convertToArray(value.children) : [],
-                }));
-                return convertToArray(root);
-            };
-            try {
-                const files = yield vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
-                const fileTree = getTreeStructure(files);
-                this._view.webview.postMessage({
-                    command: "setFiles",
-                    files: fileTree,
-                });
-            }
-            catch (error) {
-                console.error("Error retrieving workspace files:", error);
-                this._view.webview.postMessage({
-                    command: "error",
-                    message: "Failed to retrieve workspace files.",
-                });
-            }
-        });
+            });
+            const convertToArray = (node) => Object.entries(node).map(([name, value]) => ({
+                name,
+                type: value.type,
+                path: value.path || null,
+                children: value.type === "directory" ? convertToArray(value.children) : [],
+            }));
+            return convertToArray(root);
+        };
+        try {
+            const files = await vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
+            const fileTree = getTreeStructure(files);
+            this._view.webview.postMessage({
+                command: "setFiles",
+                files: fileTree,
+            });
+        }
+        catch (error) {
+            console.error("Error retrieving workspace files:", error);
+            this._view.webview.postMessage({
+                command: "error",
+                message: "Failed to retrieve workspace files.",
+            });
+        }
     }
     /**
      * Opens a file in the editor based on the provided file path.
      * @param filePath The absolute path of the file to open.
      */
-    openFile(filePath) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const fileUri = vscode.Uri.file(filePath);
-                yield vscode.window.showTextDocument(fileUri);
-            }
-            catch (error) {
-                console.error("Error opening file:", error);
-                vscode.window.showErrorMessage("Failed to open the selected file.");
-            }
-        });
+    async openFile(filePath) {
+        try {
+            const fileUri = vscode.Uri.file(filePath);
+            await vscode.window.showTextDocument(fileUri);
+        }
+        catch (error) {
+            console.error("Error opening file:", error);
+            vscode.window.showErrorMessage("Failed to open the selected file.");
+        }
     }
 }
 class WebviewManager {
+    static instance;
+    panel;
+    colorsViewProvider;
     constructor() { }
     static getInstance() {
         if (!WebviewManager.instance) {
@@ -648,3 +627,4 @@ class WebviewManager {
 }
 // This method is called when your extension is deactivated
 function deactivate() { }
+//# sourceMappingURL=extension.js.map

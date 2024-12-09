@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+
+var { resolve } = require('../utilities');
+
+require('./finalize-installation').then(() => {
+
+    var method = process.argv[2] && process.argv[2].toLowerCase();
+
+    if(method && method.toLowerCase().indexOf("init") !== -1) {
+        return;
+    }
+
+    if(method === 'compile') {
+        if(!process.argv[3] || process.argv.indexOf('nobin') !== -1) {
+            return require('./contracts-compiler');
+        }
+        return require('../compile')(process.argv[3], process.argv[4], process.argv[5]).then(it => void(console.log(it), console.log(JSON.stringify((it[process.argv[4]] || it).abi || it))));
+    }
+
+    if(method === 'flat') {
+        return require('truffle-flattener-wrapper')(resolve('contracts'), resolve('flat'));
+    }
+
+    return require('../environments');
+
+}).then(() => process.exit(0)).catch(console.error);

@@ -104,7 +104,7 @@ function createWebviewPanel(context) {
         retainContextWhenHidden: true, // Keeps the webview state
     });
     WebviewManager.getInstance().setPanel(panel);
-    const scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.4be6113b.js"));
+    const scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.e32c8ff2.js"));
     const cssSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "css", "main.f3770834.css"));
     panel.webview.html = `<!DOCTYPE html>
     <html lang="en">

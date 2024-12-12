@@ -50,7 +50,6 @@ exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const credentials_1 = require("./credentials");
 const path_1 = __importDefault(require("path"));
-const multiverse = require('./multiverse-main');
 function activate(context) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -58,24 +57,6 @@ function activate(context) {
             const credentials = new credentials_1.Credentials();
             yield credentials.initialize(context);
             console.log("Credentials initialized successfully");
-            // Locate the 'code.sol' file in the workspace
-            const contractFileName = "code.sol";
-            const files = yield vscode.workspace.findFiles(`**/${contractFileName}`, "**/node_modules/**", 1);
-            if (files.length === 0) {
-                throw new Error(`"${contractFileName}" not found in the workspace.`);
-            }
-            const contractUri = files[0];
-            const contractPath = contractUri.fsPath;
-            console.log(`Found "${contractFileName}" at: ${contractPath}`);
-            try {
-                const compiledContract = yield multiverse.compile(contractPath, // Use the dynamic path
-                "MyContract", // Ensure this matches the contract name in 'code.sol'
-                "0.8.0", false);
-                console.log("Compilation successful:", compiledContract);
-            }
-            catch (error) {
-                console.error("Compilation failed:", error);
-            }
             const signInCommand = vscode.commands.registerCommand("extension.getGitHubUser", () => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const userInfo = yield credentials.signIn();
@@ -88,6 +69,7 @@ function activate(context) {
             }));
             context.subscriptions.push(signInCommand);
             console.log("Sign-in command registered");
+            // Command to preview a URL
             const previewCommand = vscode.commands.registerCommand('extension.preview', (previewUrl) => __awaiter(this, void 0, void 0, function* () {
                 try {
                     yield vscode.env.openExternal(vscode.Uri.parse(previewUrl));
@@ -124,7 +106,7 @@ function createWebviewPanel(context) {
         retainContextWhenHidden: true, // Keeps the webview state
     });
     WebviewManager.getInstance().setPanel(panel);
-    const scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.4be6113b.js"));
+    const scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "js", "main.f65d1a75.js"));
     const cssSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "media", "build", "static", "css", "main.f3770834.css"));
     panel.webview.html = `<!DOCTYPE html>
     <html lang="en">
@@ -141,7 +123,7 @@ function createWebviewPanel(context) {
             <script>
                 // Ensure VS Code API is available
                 const vscode = acquireVsCodeApi();
-
+                window.vscode = vscode;
                 // Function to handle opening a preview
                 const handlePreviewClick = (url) => {
                     vscode.postMessage({ command: 'openPreview', url: url });
@@ -210,7 +192,7 @@ class ColorsViewProvider {
                     margin-left: 5px;
                 }
                 .folder {
-                    font-weight: bold;
+                    font-weight: normal;
                 }
                 .icon {
                     width: 16px;
@@ -349,25 +331,6 @@ class ColorsViewProvider {
                     />
                   </svg>
                 </li>
-                <li
-                  class="editor-play-button"
-                  >
-                  <svg
-                    class="size-6"
-                    style={{
-                      width: "20px",
-                    }}
-                    viewBox="0 0 510 513"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M251.5 228.5L267.486 231.818C273.845 233.138 278.776 238.172 279.964 244.557L282 255.5M251.5 228.5L205.56 219.935C201.024 219.089 199.993 213.163 204.031 210.932C225.753 198.93 256.357 183.555 266.268 178.609C268.207 177.641 269.285 175.547 268.969 173.403L258.61 103.281C257.916 98.5861 263.542 95.6567 266.991 98.9171L317.992 147.13C319.502 148.556 321.736 148.902 323.606 147.997L386.207 117.693C390.457 115.636 394.928 120.073 392.902 124.339L362.462 188.421C361.58 190.279 361.925 192.486 363.331 193.986L411.241 245.09C414.474 248.539 411.557 254.135 406.877 253.458L341.349 243.984C339.326 243.692 337.329 244.66 336.305 246.429L299.174 310.601C296.803 314.698 290.594 313.512 289.901 308.829L282 255.5M251.5 228.5L19 465.5L14.6727 470.499C1.51211 485.704 16.8038 508.565 35.8814 502.206C36.2884 502.071 36.6593 501.844 36.9657 501.544L162.5 378.5M282 255.5L218 323M347.5 12.5L342.5 43.5M461.5 49.5L427 85M216.5 10L239 54.5M161.5 111L185.5 123M496 163L469.5 167M500 296.5L456 273.5M401 351.5L388.5 327"
-                      stroke="white"
-                      stroke-width="19"
-                      stroke-linecap="round"
-                    />
-                  </svg>
-                </li>
                 <li class="editor-settings-button">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -391,14 +354,63 @@ class ColorsViewProvider {
                     />
                   </svg>
                 </li>
+                 <li
+                  class="editor-play-button"
+                  >
+
+                    <svg width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M4.6 15c-.9-2.6-.6-4.6-.5-5.4 2.4-1.5 5.3-2 8-1.3.7-.3 1.5-.5 2.3-.6-.1-.3-.2-.5-.3-.8h2l1.2-3.2-.9-.4-1 2.6h-1.8C13 4.8 12.1 4 11.1 3.4l2.1-2.1-.7-.7L10.1 3c-.7 0-1.5 0-2.3.1L5.4.7l-.7.7 2.1 2.1C5.7 4.1 4.9 4.9 4.3 6H2.5l-1-2.6-.9.4L1.8 7h2C3.3 8.3 3 9.6 3 11H1v1h2c0 1 .2 2 .5 3H1.8L.6 18.3l.9.3 1-2.7h1.4c.4.8 2.1 4.5 5.8 3.9-.3-.2-.5-.5-.7-.8-2.9 0-4.4-3.5-4.4-4zM9 3.9c2 0 3.7 1.6 4.4 3.8-2.9-1-6.2-.8-9 .6.7-2.6 2.5-4.4 4.6-4.4zm14.8 19.2l-4.3-4.3c2.1-2.5 1.8-6.3-.7-8.4s-6.3-1.8-8.4.7-1.8 6.3.7 8.4c2.2 1.9 5.4 1.9 7.7 0l4.3 4.3c.2.2.5.2.7 0 .2-.2.2-.5 0-.7zm-8.8-3c-2.8 0-5.1-2.3-5.1-5.1s2.3-5.1 5.1-5.1 5.1 2.3 5.1 5.1-2.3 5.1-5.1 5.1z"/><path fill="none" d="M0 0h24v24H0z"/></svg>
+                  </li>
+                  <li
+                  class="editor-play-button"
+                  >
+
+                  <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M17 7.82959L18.6965 9.35641C20.239 10.7447 21.0103 11.4389 21.0103 12.3296C21.0103 13.2203 20.239 13.9145 18.6965 15.3028L17 16.8296" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M13.9868 5L12.9934 8.70743M11.8432 13L10.0132 19.8297" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M7.00005 7.82959L5.30358 9.35641C3.76102 10.7447 2.98975 11.4389 2.98975 12.3296C2.98975 13.2203 3.76102 13.9145 5.30358 15.3028L7.00005 16.8296" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
+
+                     </li>
               </ul>
             </div>
             <ul id="file-list"></ul>
             <div class="editor-tree" onClick="event.stopPropagation()">
-                <ul id="module-list"></ul>
+                
+                <ul id="module-list">
+                    <!-- Modules will be rendered here -->
+                </ul>
             </div>
+             <div class="navigation-tree-footer">
+              <ul>
+                <li>&copy; Copyright 2024 Kaiten</li>
+                <li>
+                  <svg
+                    fill="#000"
+                    height="10px"
+                    width="10px"
+                    version="1.1"
+                    id="Capa_1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 490 490">
+                    <g>
+                      <g>
+                        <path d="M245,0C109.5,0,0,109.5,0,245s109.5,245,245,245s245-109.5,245-245S380.5,0,245,0z M245,449.3 c-112.6,0-204.3-91.7-204.3-204.3S132.4,40.7,245,40.7S449.3,132.4,449.3,245S357.6,449.3,245,449.3z" />
+                        <path d="M290.9,224.1h-25v-95.9c0-11.5-9.4-20.9-20.9-20.9s-20.9,9.4-20.9,20.9V245c0,11.5,9.4,20.9,20.9,20.9h45.9 c11.5,0,20.9-9.4,20.9-20.9S302.3,224.1,290.9,224.1z" />
+                      </g>
+                    </g>
+                  </svg>
+                  20ms
+                </li>
+                <li>
+                  <b>HTML</b>
+                </li>
+              </ul>
+            </div>
+          </div>
             <script>
                 const vscode = acquireVsCodeApi();
+                window.vscode = vscode;
+
 
                  function renderModules(modules) {
                     const moduleList = document.getElementById('module-list');
@@ -467,7 +479,7 @@ class ColorsViewProvider {
     
                         if (fileNode.type === "directory") {
                             li.innerHTML = 
-                                '<img class="icon" src="https://cdn-icons-png.flaticon.com/512/716/716784.png" alt="folder icon" />' +
+                                '<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.5 6.89963C4.5 6.05956 4.5 5.63952 4.66349 5.31865C4.8073 5.0364 5.03677 4.80693 5.31901 4.66312C5.63988 4.49963 6.05992 4.49963 6.9 4.49963H9.47237C9.84808 4.49963 10.0359 4.49963 10.2065 4.55142C10.3574 4.59727 10.4978 4.67243 10.6197 4.77261C10.7574 4.88577 10.8616 5.04208 11.07 5.35471L11.93 6.64496C12.1384 6.95758 12.2426 7.1139 12.3803 7.22706C12.5022 7.32724 12.6426 7.4024 12.7935 7.44825C12.9641 7.50003 13.1519 7.50003 13.5276 7.50003H17.1C17.9401 7.50003 18.3601 7.50003 18.681 7.66353C18.9632 7.80734 19.1927 8.03681 19.3365 8.31905C19.5 8.63992 19.5 9.05996 19.5 9.90003V16.1C19.5 16.9401 19.5 17.3602 19.3365 17.681C19.1927 17.9633 18.9632 18.1927 18.681 18.3365C18.3601 18.5 17.9401 18.5 17.1 18.5H6.9C6.05992 18.5 5.63988 18.5 5.31901 18.3365C5.03677 18.1927 4.8073 17.9633 4.66349 17.681C4.5 17.3602 4.5 16.9401 4.5 16.1V6.89963Z" stroke="#ffffff"/></svg>' +
                                 '<span class="folder">' + fileNode.name + '</span>';
                             const ul = document.createElement("ul");
                             ul.style.display = "none"; 
@@ -478,7 +490,7 @@ class ColorsViewProvider {
                             addFiles(fileNode.children, ul);
                         } else {
                             li.innerHTML = 
-                                '<img class="icon" src="https://cdn-icons-png.flaticon.com/512/716/716781.png" alt="file icon" />' +
+                                '<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 6C6.5 5.17157 7.17157 4.5 8 4.5H13.5L17.5 8.5V18C17.5 18.8284 16.8284 19.5 16 19.5H8C7.17157 19.5 6.5 18.8284 6.5 18V6Z" stroke="#ffffff"/><path d="M13 4.5V9H17.5" stroke="#ffffff" stroke-linejoin="round"/></svg>' +
                                 '<span class="file">' + fileNode.name + '</span>';
                             li.querySelector("span").addEventListener("click", () => {
                                 vscode.postMessage({ command: "openFile", filePath: fileNode.path });
@@ -499,6 +511,7 @@ class ColorsViewProvider {
             </script>
         </body>
         </html>`;
+        // Ensure files are sent to the webview
         this.sendFilesToWebview();
         this._view.webview.onDidReceiveMessage((message) => __awaiter(this, void 0, void 0, function* () {
             switch (message.command) {
@@ -522,6 +535,7 @@ class ColorsViewProvider {
                     // Send modules to webview
                     this.sendModulesToWebview(this._modules);
                     break;
+                // Handle other commands if needed
             }
         }), undefined, this._context.subscriptions);
     }
@@ -539,6 +553,7 @@ class ColorsViewProvider {
                 const content = Buffer.from(fileContent).toString('utf8');
                 // Get the webview panel for the React app
                 let panel = WebviewManager.getInstance().getPanel();
+                // If the panel doesn't exist, create it
                 if (!panel) {
                     yield vscode.commands.executeCommand('extension.webview');
                     panel = WebviewManager.getInstance().getPanel();
@@ -547,6 +562,7 @@ class ColorsViewProvider {
                         return;
                     }
                 }
+                // Send the file name and content to the React app
                 panel.webview.postMessage({
                     command: 'fileDropped',
                     fileName: path_1.default.basename(filePath),
@@ -559,6 +575,9 @@ class ColorsViewProvider {
             }
         });
     }
+    /**
+     * Retrieves the list of files in the workspace and sends them to the webview.
+     */
     sendFilesToWebview() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this._view) {
@@ -592,8 +611,11 @@ class ColorsViewProvider {
                 return convertToArray(root);
             };
             try {
+                // Retrieve all files and directories, excluding `node_modules`.
                 const files = yield vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
+                // Convert the list of files into a tree structure.
                 const fileTree = getTreeStructure(files);
+                // Send the tree structure to the webview.
                 this._view.webview.postMessage({
                     command: "setFiles",
                     files: fileTree,
@@ -601,6 +623,7 @@ class ColorsViewProvider {
             }
             catch (error) {
                 console.error("Error retrieving workspace files:", error);
+                // Notify the webview of the error.
                 this._view.webview.postMessage({
                     command: "error",
                     message: "Failed to retrieve workspace files.",

@@ -1,4 +1,5 @@
 from app.api.routers.models import CodeGenerationBody, CodeGenerationResponse
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Header, Request
 from github import Github
 from github.GithubException import GithubException, BadCredentialsException
@@ -12,6 +13,8 @@ import ast
 import logging
 import os
 import time
+
+load_dotenv()
 
 code_generation_router = r = APIRouter()
 
@@ -102,11 +105,11 @@ async def generate(
         query = f"""{body.custom_instructions}
 
         Here is the code for the smart contract:
-        {body.smart_contract_code}
+        {body.parsed_smart_contracts}
         """
     else:
         query = f"""Here is the code for the smart contract:
-        {body.smart_contract_code}"""
+        {body.parsed_smart_contracts}"""
 
     try:
         response: AgentChatResponse = await agent.achat(message=query, tool_choice="generate_code")

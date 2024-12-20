@@ -7,6 +7,7 @@ const GITHUB_AUTH_PROVIDER_ID = "github";
 const SCOPES = ["user:email"];
 
 export class Credentials {
+  private session: vscode.AuthenticationSession | undefined;
   private octokit: Octokit.Octokit | undefined;
 
   async initialize(context: vscode.ExtensionContext): Promise<void> {
@@ -20,15 +21,15 @@ export class Credentials {
      * An entry for the sample extension will be added under the menu to sign in. This allows quietly
      * prompting the user to sign in.
      * */
-    const session = await vscode.authentication.getSession(
+    this.session = await vscode.authentication.getSession(
       GITHUB_AUTH_PROVIDER_ID,
       SCOPES,
       { createIfNone: false }
     );
 
-    if (session) {
+    if (this.session) {
       this.octokit = new Octokit.Octokit({
-        auth: session.accessToken,
+        auth: this.session.accessToken,
       });
 
       return;
@@ -59,19 +60,19 @@ export class Credentials {
      * When the `createIfNone` flag is passed, a modal dialog will be shown asking the user to sign in.
      * Note that this can throw if the user clicks cancel.
      */
-    const session = await vscode.authentication.getSession(
+    this.session = await vscode.authentication.getSession(
       GITHUB_AUTH_PROVIDER_ID,
       SCOPES,
       { createIfNone: true }
     );
     this.octokit = new Octokit.Octokit({
-      auth: session.accessToken,
+      auth: this.session.accessToken,
     });
 
     return this.octokit;
   }
 
-  async signIn() {
+  async signIn(secretStorage: vscode.SecretStorage) {
     /**
      * Octokit (https://github.com/octokit/rest.js#readme) is a library for making REST API
      * calls to GitHub. It provides convenient typings that can be helpful for using the API.
@@ -80,7 +81,19 @@ export class Credentials {
      */
     const octokit = await this.getOctokit();
     const userInfo = await octokit.users.getAuthenticated();
+   
+    console.log("Github access token: ", this.session?.accessToken);
+
+    if (this.session?.accessToken) {
+    secretStorage.store("github-token", this.session.accessToken);
+    }
 
     return userInfo;
+  }
+
+  async getAccessToken() {
+    if (this.session) {
+      return this.session.accessToken;
+    }
   }
 }

@@ -5,8 +5,10 @@ import { CompileResult } from "multiverse-main";
 const multiverse = require('./multiverse-main');
 
 export async function activate(context: vscode.ExtensionContext) {
-    try {
-        console.log("Activating Kaiten extension");
+  try {
+    console.log("Activating Kaiten extension");
+
+    const secretStorage: vscode.SecretStorage = context.secrets;
 
         const credentials = new Credentials();
         await credentials.initialize(context);
@@ -54,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension.getGitHubUser",
             async () => {
                 try {
-                    const userInfo = await credentials.signIn();
+                    const userInfo = await credentials.signIn(secretStorage);
                     vscode.window.showInformationMessage(
                         `Kaiten: Signed In as '${userInfo.data.login}'`
                     );
@@ -67,21 +69,21 @@ export async function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(signInCommand);
         console.log("Sign-in command registered");
 
-        // Command to preview a URL
-        const previewCommand = vscode.commands.registerCommand(
-            'extension.preview',
-            async (previewUrl: string) => {
-                try {
-                    await vscode.env.openExternal(vscode.Uri.parse(previewUrl));
-                    console.log('Preview URL opened:', previewUrl);
-                } catch (error) {
-                    console.error('Error opening preview URL:', error);
-                    vscode.window.showErrorMessage('Failed to open the preview URL.');
-                }
-            }
-        );
-        context.subscriptions.push(previewCommand);
-        console.log("Preview command registered");
+    // Command to preview a URL
+    const previewCommand = vscode.commands.registerCommand(
+      "extension.preview",
+      async (previewUrl: string) => {
+        try {
+          await vscode.env.openExternal(vscode.Uri.parse(previewUrl));
+          console.log("Preview URL opened:", previewUrl);
+        } catch (error) {
+          console.error("Error opening preview URL:", error);
+          vscode.window.showErrorMessage("Failed to open the preview URL.");
+        }
+      }
+    );
+    context.subscriptions.push(previewCommand);
+    console.log("Preview command registered");
 
         // Command to create a webview panel
         const webviewCommand = vscode.commands.registerCommand(
@@ -110,41 +112,41 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 function createWebviewPanel(context: vscode.ExtensionContext) {
-    const panel = vscode.window.createWebviewPanel(
-        "webview",
-        "Kaiten",
-        vscode.ViewColumn.One,
-        {
-            enableScripts: true,
-            retainContextWhenHidden: true, // Keeps the webview state
-        }
-    );
+  const panel = vscode.window.createWebviewPanel(
+    "webview",
+    "Kaiten",
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true,
+      retainContextWhenHidden: true, // Keeps the webview state
+    }
+  );
 
-    WebviewManager.getInstance().setPanel(panel);
+  WebviewManager.getInstance().setPanel(panel);
 
-    const scriptSrc = panel.webview.asWebviewUri(
-        vscode.Uri.joinPath(
-            context.extensionUri,
-            "media",
-            "build",
-            "static",
-            "js",
-            "main.f65d1a75.js"
-        )
-    );
+  const scriptSrc = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(
+      context.extensionUri,
+      "media",
+      "build",
+      "static",
+      "js",
+      "main.f65d1a75.js"
+    )
+  );
 
-    const cssSrc = panel.webview.asWebviewUri(
-        vscode.Uri.joinPath(
-            context.extensionUri,
-            "media",
-            "build",
-            "static",
-            "css",
-            "main.f3770834.css"
-        )
-    );
+  const cssSrc = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(
+      context.extensionUri,
+      "media",
+      "build",
+      "static",
+      "css",
+      "main.f3770834.css"
+    )
+  );
 
-    panel.webview.html = `<!DOCTYPE html>
+  panel.webview.html = `<!DOCTYPE html>
     <html lang="en">
         <head>
             <meta charset="UTF-8">
@@ -177,33 +179,33 @@ function createWebviewPanel(context: vscode.ExtensionContext) {
         </body>
     </html>`;
 
-    // Add message listener for incoming messages from the webview
-    panel.webview.onDidReceiveMessage(
-        (message) => {
-            switch (message.command) {
-                case 'openPreview':
-                    // Use the extension preview command to open the URL
-                    vscode.commands.executeCommand('extension.preview', message.url);
-                    break;
-                // Additional commands can be added here
-            }
-        },
-        undefined,
-        context.subscriptions
-    );
+  // Add message listener for incoming messages from the webview
+  panel.webview.onDidReceiveMessage(
+    (message) => {
+      switch (message.command) {
+        case "openPreview":
+          // Use the extension preview command to open the URL
+          vscode.commands.executeCommand("extension.preview", message.url);
+          break;
+        // Additional commands can be added here
+      }
+    },
+    undefined,
+    context.subscriptions
+  );
 }
 
 interface FileNode {
-    name: string;
-    type: "file" | "directory";
-    path: string | null;
-    children?: FileNode[];
+  name: string;
+  type: "file" | "directory";
+  path: string | null;
+  children?: FileNode[];
 }
 
 class ColorsViewProvider implements vscode.WebviewViewProvider {
-    private _context: vscode.ExtensionContext;
-    private _view?: vscode.WebviewView;
-    private _modules: any[] = [];
+  private _context: vscode.ExtensionContext;
+  private _view?: vscode.WebviewView;
+  private _modules: any[] = [];
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
@@ -607,31 +609,34 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         );
     }
 
-    public sendModulesToWebview(modules: any[]) {
-        this._modules = modules;
-        if (this._view) {
-            this._view.webview.postMessage({ command: 'updateModules', modules: modules });
-        }
+  public sendModulesToWebview(modules: any[]) {
+    this._modules = modules;
+    if (this._view) {
+      this._view.webview.postMessage({
+        command: "updateModules",
+        modules: modules,
+      });
     }
+  }
 
-    private async handleOpenFile(filePath: string) {
-        try {
-            const fileUri = vscode.Uri.file(filePath);
-            const fileContent = await vscode.workspace.fs.readFile(fileUri);
-            const content = Buffer.from(fileContent).toString('utf8');
+  private async handleOpenFile(filePath: string) {
+    try {
+      const fileUri = vscode.Uri.file(filePath);
+      const fileContent = await vscode.workspace.fs.readFile(fileUri);
+      const content = Buffer.from(fileContent).toString("utf8");
 
-            // Get the webview panel for the React app
-            let panel = WebviewManager.getInstance().getPanel();
+      // Get the webview panel for the React app
+      let panel = WebviewManager.getInstance().getPanel();
 
-            // If the panel doesn't exist, create it
-            if (!panel) {
-                await vscode.commands.executeCommand('extension.webview');
-                panel = WebviewManager.getInstance().getPanel();
-                if (!panel) {
-                    console.error('Failed to create webview panel');
-                    return;
-                }
-            }
+      // If the panel doesn't exist, create it
+      if (!panel) {
+        await vscode.commands.executeCommand("extension.webview");
+        panel = WebviewManager.getInstance().getPanel();
+        if (!panel) {
+          console.error("Failed to create webview panel");
+          return;
+        }
+      }
 
             // Send the file name and content to the React app
             panel.webview.postMessage({
@@ -725,34 +730,34 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 }
 
 class WebviewManager {
-    private static instance: WebviewManager;
-    private panel: vscode.WebviewPanel | undefined;
-    private colorsViewProvider: ColorsViewProvider | undefined;
+  private static instance: WebviewManager;
+  private panel: vscode.WebviewPanel | undefined;
+  private colorsViewProvider: ColorsViewProvider | undefined;
 
-    private constructor() { }
+  private constructor() {}
 
-    public static getInstance(): WebviewManager {
-        if (!WebviewManager.instance) {
-            WebviewManager.instance = new WebviewManager();
-        }
-        return WebviewManager.instance;
+  public static getInstance(): WebviewManager {
+    if (!WebviewManager.instance) {
+      WebviewManager.instance = new WebviewManager();
     }
+    return WebviewManager.instance;
+  }
 
-    public setPanel(panel: vscode.WebviewPanel) {
-        this.panel = panel;
-    }
+  public setPanel(panel: vscode.WebviewPanel) {
+    this.panel = panel;
+  }
 
-    public getPanel(): vscode.WebviewPanel | undefined {
-        return this.panel;
-    }
+  public getPanel(): vscode.WebviewPanel | undefined {
+    return this.panel;
+  }
 
-    public setColorsViewProvider(provider: ColorsViewProvider) {
-        this.colorsViewProvider = provider;
-    }
+  public setColorsViewProvider(provider: ColorsViewProvider) {
+    this.colorsViewProvider = provider;
+  }
 
-    public getColorsViewProvider(): ColorsViewProvider | undefined {
-        return this.colorsViewProvider;
-    }
+  public getColorsViewProvider(): ColorsViewProvider | undefined {
+    return this.colorsViewProvider;
+  }
 }
 
 // This method is called when your extension is deactivated

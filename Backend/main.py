@@ -2,8 +2,10 @@ from app.api.routers.code_generation import code_generation_router
 from app.settings import init_settings
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from typing import Dict
 import logging
 import os
 import uvicorn
@@ -11,7 +13,13 @@ import uvicorn
 load_dotenv()
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    calls_per_user: Dict[str, list] = {}
+    yield {"calls_per_user": calls_per_user}
+
+
+app = FastAPI(lifespan=lifespan)
 
 init_settings()
 

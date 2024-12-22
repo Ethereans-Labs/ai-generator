@@ -3,5 +3,6 @@ cachetools==5.3.3
 fastapi==0.111.0
 llama-index-agent-openai==0.2.8
 llama-index==0.10.53
+PyGithub==2.5.0
 python-dotenv==1.0.1
 uvicorn[standard]==0.30.1

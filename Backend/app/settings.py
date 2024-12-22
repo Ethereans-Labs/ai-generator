@@ -1,5 +1,5 @@
-import os
 from llama_index.core.settings import Settings
+import os
 
 
 def init_settings():

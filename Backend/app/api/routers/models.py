@@ -7,8 +7,8 @@ logger = logging.getLogger("uvicorn")
 
 
 class CodeGenerationBody(BaseModel):
-    smart_contract_code: Optional[str] = Field(
-        default=None, description="Smart contract code")
+    parsed_smart_contracts: Optional[str] = Field(
+        default=None, description="Parsed smart contracts")
     custom_instructions: Optional[str] = Field(
         default=None, description="Custom instructions used by the LLM to generate the code")
 

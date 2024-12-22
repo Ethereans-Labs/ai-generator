@@ -50,6 +50,7 @@ exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const credentials_1 = require("./credentials");
 const path_1 = __importDefault(require("path"));
+const multiverse = require('./multiverse-main');
 function activate(context) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -57,6 +58,38 @@ function activate(context) {
             const credentials = new credentials_1.Credentials();
             yield credentials.initialize(context);
             console.log("Credentials initialized successfully");
+            // Attempt compilation on activation, optional
+            const contractFileName = "code.sol";
+            const files = yield vscode.workspace.findFiles(`**/${contractFileName}`, "**/node_modules/**", 1);
+            if (files.length === 0) {
+                console.warn(`${contractFileName} not found in the workspace. Skipping compilation test.`);
+            }
+            else {
+                const contractUri = files[0];
+                const contractPath = contractUri.fsPath;
+                console.log(`Found "${contractFileName}" at: ${contractPath}`);
+                try {
+                    const compiledContract = yield multiverse.compile(contractPath, "MyContract", "0.8.0", false);
+                    for (const contractName in compiledContract) {
+                        if (Object.prototype.hasOwnProperty.call(compiledContract, contractName)) {
+                            const contractObj = compiledContract[contractName];
+                            // Check that contractObj is an object before using 'in'
+                            if (typeof contractObj === 'object' && contractObj !== null) {
+                                if ('bin' in contractObj) {
+                                    delete contractObj.bin;
+                                }
+                                if ('bin-runtime' in contractObj) {
+                                    delete contractObj['bin-runtime'];
+                                }
+                            }
+                        }
+                    }
+                    console.log("Compilation successful:", JSON.stringify(compiledContract));
+                }
+                catch (error) {
+                    console.error("Compilation failed:", error);
+                }
+            }
             const signInCommand = vscode.commands.registerCommand("extension.getGitHubUser", () => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const userInfo = yield credentials.signIn();

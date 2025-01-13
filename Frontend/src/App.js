@@ -26,6 +26,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
   const [notification, setNotification] = useState({ message: "", isOpen: false });
+  const [accessToken, setAccessToken] = useState("");
+  const [contractData, setContractData] = useState("");
+  
   const key = 'KSI-93-JJD23-JDPP-JD';
   const serviceUrl = "http://0.0.0.0:8000/api/code";
   var vscode = null;
@@ -35,7 +38,7 @@ function App() {
 
 
   useEffect(() => {
-    if(!window.vscode){
+    if (!window.vscode) {
       vscode = window.acquireVsCodeApi();
     } else {
       vscode = window.vscode;
@@ -72,8 +75,12 @@ function App() {
         break;
 
       case 'openModal':
+
+        setContractData(message.contractData);
         setIsModalOpen(true);
+        setAccessToken(message.token);
         break;
+
 
       case 'openSettingsModal':
         setIsSettingsModalOpen(true);
@@ -264,7 +271,7 @@ function App() {
     setPalletColor(color);
   };
 
- 
+
 
   useEffect(() => {
     if (selectedFile) {
@@ -280,7 +287,10 @@ function App() {
           case 'moduleClicked':
             handleModuleClick(message.moduleIndex);
             break;
+
+    
           case 'fileClicked':
+            console.log('file clicked');
             setSelectedModuleIndex(message.moduleIndex);
             handleFileClick(message.fileName);
             break;
@@ -361,6 +371,8 @@ function App() {
           case 'homeButtonClick':
             break;
           case 'openModal':
+            setAccessToken(message.token);
+            setContractData(message.contractData);
             handleOpenModal();
             break;
           case 'openSettingsModal':
@@ -370,8 +382,9 @@ function App() {
             console.log(`File dropped: ${message.fileName}`, message.content);
             setSelectedFile(message.fileName);
             setEditorContent(message.content);
-           
+
             break;
+             
           default:
             break;
         }
@@ -399,50 +412,56 @@ function App() {
     setPromptValue(e.target.value);
   };
 
-  const handleFileChange = (e) => {
-    setNewModuleFile(e.target.files[0]);
-  };
-
   const handleSubmit = async () => {
-    if (promptValue && newModuleFile) {
+    if (promptValue) {
       setIsLoading(true);
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const fileContent = e.target.result;
+      const response = await fetch(serviceUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "github-access-token": accessToken,
+          "openai-api-key": openAiApiKey
+        },
+        body: JSON.stringify({
+          parsed_smart_contracts: contractData,
+          custom_instructions: promptValue
+        }),
+      });
 
-        const response = await fetch(serviceUrl, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "openai-api-key": openAiApiKey
+      if (response.ok) {
+        const result = await response.json();
+        setModules([
+          ...modules,
+          {
+            "prompt": promptValue,
+            "module.html": result.html,
+            "module.css": result.css,
+            "module.js": result.javascript,
           },
-          body: JSON.stringify({
-            smart_contract_code: fileContent,
-            custom_instructions: promptValue
-          }),
+        ]);
+
+        setSelectedModule({
+          "prompt": promptValue,
+          "module.html": result.html,
+          "module.css": result.css,
+          "module.js": result.javascript,
         });
+        setSelectedFile("module.html");
+        setEditorContent(result.html);
+        setCurrentFileType("HTML");
+        setSelectedModuleIndex(modules.length);
+        applyModuleToPreview();
 
-        if (response.ok) {
-          const result = await response.json();
-          setModules([
-            ...modules,
-            {
-              "prompt": promptValue,
-              "module.html": result.html,
-              "module.css": result.css,
-              "module.js": result.javascript,
-            },
-          ]);
+        
 
-          handleCloseModal();
-        } else {
-          const result = await response.json();
-          showNotification(result.detail + '!');
-        }
         setIsLoading(false);
-      };
-      reader.readAsText(newModuleFile);
+        handleCloseModal();
+      } else {
+        const result = await response.json();
+        showNotification(result.detail + '!');
+      }
+      setIsLoading(false);
     }
   };
 
@@ -470,19 +489,19 @@ function App() {
       <div className="top-bar"></div>
       <div className="editor-group">
         <div className="editor">
-            <>
-              <div className="editor-file-nav">
-                <div className="editor-area-group">
-                  <div className="file-navbar">
-                    <ul>
+          <>
+            <div className="editor-file-nav">
+              <div className="editor-area-group">
+                <div className="file-navbar">
+                  <ul>
                     {selectedFile != null && (
-                        <li
-                            className={
-                                selectedFile === "file.extension" ? "active-file" : ""
-                            }
-                            onClick={() => handleCurrentFileClick()}>
-                            { selectedFile }
-                        </li>
+                      <li
+                        className={
+                          selectedFile === "file.extension" ? "active-file" : ""
+                        }
+                        onClick={() => handleCurrentFileClick()}>
+                        {selectedFile}
+                      </li>
                     )}
                     {selectedModule != null && (
                       <>
@@ -515,59 +534,59 @@ function App() {
 
 
 
-                    </ul>
-                  </div>
-                  <div className="editor-area">
-                    {selectedFile && (
-                      <Editor
-                        height="90vh"
-                        //language={selectedFile.split(".").pop()}
-                        theme="vs-dark"
-                        className="editor-wrapper"
-                        value={editorContent}
-                        onChange={handleEditorChange}
-                      />
-                    )}
-                  </div>
+                  </ul>
                 </div>
-
-                {selectedModule != null && (
-                  <>
-                {(selectedModule['module.html'] != '' && selectedModule['module.css'] != '' && selectedModule['module.js'] != '') ?? (
-                  <div className="preview-area-group">
-                    <div className="preview-area-group-header">
-                      <div class="left">
-                        <h3>Preview</h3>
-                        <button className="preview-export-button" onClick={() => handleExportClick()}>Export</button>
-                        <button className="preview-export-button" onClick={() => handlePreviewClick()}>Preview</button>
-                        <button className="preview-upload-button">
-                          Upload to IPFS
-                        </button>
-                      </div>
-                      <div class="right">
-                        <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange} />
-
-                      </div>
-                    </div>
-                    <iframe
-                      ref={iframeRef}
-                      title="Preview"
-                      className={`preview-area-output ${palletColor}`}
+                <div className="editor-area">
+                  {selectedFile && (
+                    <Editor
+                      height="90vh"
+                      //language={selectedFile.split(".").pop()}
+                      theme="vs-dark"
+                      className="editor-wrapper"
+                      value={editorContent}
+                      onChange={handleEditorChange}
                     />
-                    <div className="console-output">
-                      <h3>Console Output</h3>
-                      <pre>{consoleOutput}</pre>
-                    </div>
-                  </div>
-                )}
-                </>
-                )}
-
-
-
+                  )}
+                </div>
               </div>
-            </>
-              { /*
+
+              {selectedModule != null && (
+                <>
+                 
+                    <div className="preview-area-group">
+                      <div className="preview-area-group-header">
+                        <div class="left">
+                          <h3>Preview</h3>
+                          <button className="preview-export-button" onClick={() => handleExportClick()}>Export</button>
+                          <button className="preview-export-button" onClick={() => handlePreviewClick()}>Preview</button>
+                          <button className="preview-upload-button">
+                            Upload to IPFS
+                          </button>
+                        </div>
+                        <div class="right">
+                          <PalletMenu pallets={pallets} selectedPallet={selectedPallet} onPalletChange={handlePalletChange} />
+
+                        </div>
+                      </div>
+                      <iframe
+                        ref={iframeRef}
+                        title="Preview"
+                        className={`preview-area-output ${palletColor}`}
+                      />
+                      <div className="console-output">
+                        <h3>Console Output</h3>
+                        <pre>{consoleOutput}</pre>
+                      </div>
+                    </div>
+                 
+                </>
+              )}
+
+
+
+            </div>
+          </>
+          { /*
             <div className="no-module-message">
               <h2>Import a module or Create a new one!</h2>
               <button onClick={handleOpenModal}>Create New Module</button>
@@ -583,7 +602,7 @@ function App() {
                 onChange={handleImportChange}
               />
             </div>*/}
-          
+
         </div>
       </div>
       <Modal
@@ -650,14 +669,6 @@ function App() {
                   placeholder="Add custom instructions*"
                   value={promptValue}
                   onChange={handleModuleNameChange}
-                  required
-                />
-              </label>
-              <label className={"margin-top-10"}>
-                Smart contract SOL file*
-                <input
-                  type="file"
-                  onChange={handleFileChange}
                   required
                 />
               </label>

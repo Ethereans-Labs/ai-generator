@@ -4,53 +4,17 @@ import path from "path";
 import { CompileResult } from "multiverse-main";
 const multiverse = require('./multiverse-main');
 
+var accessToken: string | undefined;
+var contractFileName: string | undefined = '';
+var outputChannel = vscode.window.createOutputChannel("Kaiten");
+
 export async function activate(context: vscode.ExtensionContext) {
-  try {
-    console.log("Activating Kaiten extension");
-
-    const secretStorage: vscode.SecretStorage = context.secrets;
-
+    try {
+        outputChannel.show(true);
+        const secretStorage: vscode.SecretStorage = context.secrets;
         const credentials = new Credentials();
         await credentials.initialize(context);
-        console.log("Credentials initialized successfully");
-
-        // Attempt compilation on activation, optional
-        const contractFileName = "code.sol";
-        const files = await vscode.workspace.findFiles(`**/${contractFileName}`, "**/node_modules/**", 1);
-
-        if (files.length === 0) {
-            console.warn(`${contractFileName} not found in the workspace. Skipping compilation test.`);
-        } else {
-            const contractUri = files[0];
-            const contractPath = contractUri.fsPath;
-            console.log(`Found "${contractFileName}" at: ${contractPath}`);
-            try {
-                const compiledContract: any = await multiverse.compile(
-                    contractPath,
-                    "MyContract",
-                    "0.8.0",
-                    false
-                );
-
-                for (const contractName in compiledContract) {
-                    if (Object.prototype.hasOwnProperty.call(compiledContract, contractName)) {
-                        const contractObj = compiledContract[contractName];
-                        if (typeof contractObj === 'object' && contractObj !== null) {
-                            if ('bin' in contractObj) {
-                                delete contractObj.bin;
-                            }
-                            if ('bin-runtime' in contractObj) {
-                                delete contractObj['bin-runtime'];
-                            }
-                        }
-                    }
-                }
-
-                console.log("Compilation successful:", JSON.stringify(compiledContract));
-            } catch (error) {
-                console.error("Compilation failed:", error);
-            }
-        }
+        accessToken = await credentials.getAccessToken();
 
         const signInCommand = vscode.commands.registerCommand(
             "extension.getGitHubUser",
@@ -67,86 +31,75 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         );
         context.subscriptions.push(signInCommand);
-        console.log("Sign-in command registered");
+        const previewCommand = vscode.commands.registerCommand(
+            "extension.preview",
+            async (previewUrl: string) => {
+                try {
+                    await vscode.env.openExternal(vscode.Uri.parse(previewUrl));
+                } catch (error) {
+                    console.error("Error opening preview URL:", error);
+                    vscode.window.showErrorMessage("Failed to open the preview URL.");
+                }
+            }
+        );
+        context.subscriptions.push(previewCommand);
 
-    // Command to preview a URL
-    const previewCommand = vscode.commands.registerCommand(
-      "extension.preview",
-      async (previewUrl: string) => {
-        try {
-          await vscode.env.openExternal(vscode.Uri.parse(previewUrl));
-          console.log("Preview URL opened:", previewUrl);
-        } catch (error) {
-          console.error("Error opening preview URL:", error);
-          vscode.window.showErrorMessage("Failed to open the preview URL.");
-        }
-      }
-    );
-    context.subscriptions.push(previewCommand);
-    console.log("Preview command registered");
-
-        // Command to create a webview panel
         const webviewCommand = vscode.commands.registerCommand(
             "extension.webview",
             async () => {
-                createWebviewPanel(context);
-                console.log("Webview command executed");
+                createWebviewPanel(context, accessToken);
             }
         );
         context.subscriptions.push(webviewCommand);
-        console.log("Webview command registered");
 
-        // Register the webview view provider for the sidebar
         context.subscriptions.push(
             vscode.window.registerWebviewViewProvider(
-                "kaiten.extensionSidebarView", // Updated to match the unique ID
+                "kaiten.extensionSidebarView",
                 new ColorsViewProvider(context)
             )
         );
-        console.log("WebviewViewProvider registered for 'kaiten.extensionSidebarView'");
 
     } catch (error) {
-        console.error("Error during extension activation:", error);
         vscode.window.showErrorMessage("Kaiten: Failed to activate the extension.");
     }
 }
 
-function createWebviewPanel(context: vscode.ExtensionContext) {
-  const panel = vscode.window.createWebviewPanel(
-    "webview",
-    "Kaiten",
-    vscode.ViewColumn.One,
-    {
-      enableScripts: true,
-      retainContextWhenHidden: true, // Keeps the webview state
-    }
-  );
+function createWebviewPanel(context: vscode.ExtensionContext, accessToken: any) {
+    const panel = vscode.window.createWebviewPanel(
+        "webview",
+        "Kaiten",
+        vscode.ViewColumn.One,
+        {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+        }
+    );
 
-  WebviewManager.getInstance().setPanel(panel);
+    WebviewManager.getInstance().setPanel(panel);
 
-  const scriptSrc = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(
-      context.extensionUri,
-      "media",
-      "build",
-      "static",
-      "js",
-      "main.f65d1a75.js"
-    )
-  );
+    const scriptSrc = panel.webview.asWebviewUri(
+        vscode.Uri.joinPath(
+            context.extensionUri,
+            "media",
+            "build",
+            "static",
+            "js",
+            "main.4084cb98.js"
+        )
+    );
 
-  const cssSrc = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(
-      context.extensionUri,
-      "media",
-      "build",
-      "static",
-      "css",
-      "main.f3770834.css"
-    )
-  );
+    const cssSrc = panel.webview.asWebviewUri(
+        vscode.Uri.joinPath(
+            context.extensionUri,
+            "media",
+            "build",
+            "static",
+            "css",
+            "main.85e14ac8.css"
+        )
+    );
 
-  panel.webview.html = `<!DOCTYPE html>
+    panel.webview.html = `<!DOCTYPE html>
     <html lang="en">
         <head>
             <meta charset="UTF-8">
@@ -179,38 +132,33 @@ function createWebviewPanel(context: vscode.ExtensionContext) {
         </body>
     </html>`;
 
-  // Add message listener for incoming messages from the webview
-  panel.webview.onDidReceiveMessage(
-    (message) => {
-      switch (message.command) {
-        case "openPreview":
-          // Use the extension preview command to open the URL
-          vscode.commands.executeCommand("extension.preview", message.url);
-          break;
-        // Additional commands can be added here
-      }
-    },
-    undefined,
-    context.subscriptions
-  );
+    panel.webview.onDidReceiveMessage(
+        (message) => {
+            switch (message.command) {
+                case "openPreview":
+                    vscode.commands.executeCommand("extension.preview", message.url);
+                    break;
+            }
+        },
+        undefined,
+        context.subscriptions
+    );
 }
 
 interface FileNode {
-  name: string;
-  type: "file" | "directory";
-  path: string | null;
-  children?: FileNode[];
+    name: string;
+    type: "file" | "directory";
+    path: string | null;
+    children?: FileNode[];
 }
 
 class ColorsViewProvider implements vscode.WebviewViewProvider {
-  private _context: vscode.ExtensionContext;
-  private _view?: vscode.WebviewView;
-  private _modules: any[] = [];
+    private _context: vscode.ExtensionContext;
+    private _view?: vscode.WebviewView;
+    private _modules: any[] = [];
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
-        console.log("calleeed called");
-
     }
 
     public resolveWebviewView(
@@ -218,7 +166,6 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         context: vscode.WebviewViewResolveContext,
         token: vscode.CancellationToken
     ) {
-        console.log("resolveWebviewView called");
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -417,22 +364,20 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
                   </svg>
                 </li>
                  <li
-                  class="editor-play-button"
+                  class="editor-debug-button"
                   >
-
                     <svg width="20px" height="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M4.6 15c-.9-2.6-.6-4.6-.5-5.4 2.4-1.5 5.3-2 8-1.3.7-.3 1.5-.5 2.3-.6-.1-.3-.2-.5-.3-.8h2l1.2-3.2-.9-.4-1 2.6h-1.8C13 4.8 12.1 4 11.1 3.4l2.1-2.1-.7-.7L10.1 3c-.7 0-1.5 0-2.3.1L5.4.7l-.7.7 2.1 2.1C5.7 4.1 4.9 4.9 4.3 6H2.5l-1-2.6-.9.4L1.8 7h2C3.3 8.3 3 9.6 3 11H1v1h2c0 1 .2 2 .5 3H1.8L.6 18.3l.9.3 1-2.7h1.4c.4.8 2.1 4.5 5.8 3.9-.3-.2-.5-.5-.7-.8-2.9 0-4.4-3.5-4.4-4zM9 3.9c2 0 3.7 1.6 4.4 3.8-2.9-1-6.2-.8-9 .6.7-2.6 2.5-4.4 4.6-4.4zm14.8 19.2l-4.3-4.3c2.1-2.5 1.8-6.3-.7-8.4s-6.3-1.8-8.4.7-1.8 6.3.7 8.4c2.2 1.9 5.4 1.9 7.7 0l4.3 4.3c.2.2.5.2.7 0 .2-.2.2-.5 0-.7zm-8.8-3c-2.8 0-5.1-2.3-5.1-5.1s2.3-5.1 5.1-5.1 5.1 2.3 5.1 5.1-2.3 5.1-5.1 5.1z"/><path fill="none" d="M0 0h24v24H0z"/></svg>
                   </li>
                   <li
                   class="editor-play-button"
                   >
+                     <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 7.82959L18.6965 9.35641C20.239 10.7447 21.0103 11.4389 21.0103 12.3296C21.0103 13.2203 20.239 13.9145 18.6965 15.3028L17 16.8296" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M13.9868 5L12.9934 8.70743M11.8432 13L10.0132 19.8297" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M7.00005 7.82959L5.30358 9.35641C3.76102 10.7447 2.98975 11.4389 2.98975 12.3296C2.98975 13.2203 3.76102 13.9145 5.30358 15.3028L7.00005 16.8296" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
 
-                  <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M17 7.82959L18.6965 9.35641C20.239 10.7447 21.0103 11.4389 21.0103 12.3296C21.0103 13.2203 20.239 13.9145 18.6965 15.3028L17 16.8296" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M13.9868 5L12.9934 8.70743M11.8432 13L10.0132 19.8297" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M7.00005 7.82959L5.30358 9.35641C3.76102 10.7447 2.98975 11.4389 2.98975 12.3296C2.98975 13.2203 3.76102 13.9145 5.30358 15.3028L7.00005 16.8296" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
-</svg>
-
-                     </li>
+                    </li>
               </ul>
             </div>
             <ul id="file-list"></ul>
@@ -472,7 +417,7 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
             <script>
                 const vscode = acquireVsCodeApi();
                 window.vscode = vscode;
-
+                const accessToken = "${accessToken!.replace(/"/g, '\\"')}";
 
                  function renderModules(modules) {
                     const moduleList = document.getElementById('module-list');
@@ -520,11 +465,15 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 
                 window.onload = () => {
                     document.querySelector('.editor-play-button svg').addEventListener('click', () => {
-                    vscode.postMessage({ command: 'openModal' });
+                        vscode.postMessage({ command: 'openModal',  token: accessToken });
+                    });
+
+                    document.querySelector('.editor-debug-button svg').addEventListener('click', () => {
+                        vscode.postMessage({ command: 'debugCommand' });
                     });
 
                     document.querySelector('.editor-settings-button svg').addEventListener('click', () => {
-                    vscode.postMessage({ command: 'openSettingsModal' });
+                        vscode.postMessage({ command: 'openSettingsModal' });
                     });
                 };
     
@@ -555,7 +504,7 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
                                 '<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 6C6.5 5.17157 7.17157 4.5 8 4.5H13.5L17.5 8.5V18C17.5 18.8284 16.8284 19.5 16 19.5H8C7.17157 19.5 6.5 18.8284 6.5 18V6Z" stroke="#ffffff"/><path d="M13 4.5V9H17.5" stroke="#ffffff" stroke-linejoin="round"/></svg>' +
                                 '<span class="file">' + fileNode.name + '</span>';
                             li.querySelector("span").addEventListener("click", () => {
-                                vscode.postMessage({ command: "openFile", filePath: fileNode.path });
+                                vscode.postMessage({ command: "openFile", filePath: fileNode.path,  fileName: fileNode.name });
                             });
                         }
                         parent.appendChild(li);
@@ -574,34 +523,136 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         </body>
         </html>`;
 
-        // Ensure files are sent to the webview
         this.sendFilesToWebview();
 
         this._view.webview.onDidReceiveMessage(
             async (message) => {
                 switch (message.command) {
                     case "openFile":
+                        contractFileName = message.fileName;
                         this.handleOpenFile(message.filePath);
                         break;
-                    case 'openModal':
-                    case 'openSettingsModal':
-                        let panel = WebviewManager.getInstance().getPanel();
+                    case 'debugCommand':
+                        if (contractFileName != '') {
+                            var files = await vscode.workspace.findFiles(`**/${contractFileName}`, "**/node_modules/**", 1);
+
+                            if (files.length === 0) {
+                                console.warn(`${contractFileName} not found in the workspace. Skipping compilation test.`);
+                                outputChannel.appendLine("No valid file selected!");
+                            } else {
+                                const contractUri = files[0];
+                                const contractPath = contractUri.fsPath;
+                                try {
+                                    outputChannel.appendLine("Start compiling!");
+                                    const compiledContract: any = await multiverse.compile(
+                                        contractPath,
+                                        "contract",
+                                        "0.8.0",
+                                        false
+                                    );
+
+                                    for (const contractName in compiledContract) {
+                                        if (Object.prototype.hasOwnProperty.call(compiledContract, contractName)) {
+                                            const contractObj = compiledContract[contractName];
+                                            if (typeof contractObj === 'object' && contractObj !== null) {
+                                                if ('bin' in contractObj) {
+                                                    delete contractObj.bin;
+                                                }
+                                                if ('bin-runtime' in contractObj) {
+                                                    delete contractObj['bin-runtime'];
+                                                }
+                                            }
+                                        }
+                                    }
+                                    vscode.window.showInformationMessage("Compilation successful!");
+                                    outputChannel.appendLine("Compilation successful!");
+                                } catch (error) {
+                                    vscode.window.showErrorMessage("Compilation failed, check terminal output!");
+                                    outputChannel.appendLine("Compilation failed:" + error);
+                                    console.error("Compilation failed:", error);
+                                }
+                            }
+
+                        } else {
+                            vscode.window.showErrorMessage("Compilation failed, check terminal output!");
+                            outputChannel.appendLine("No valid file selected! Select a sol file to proceed.");
+                        }
+                        break;
+
+                        case 'openSettingsModal':
+
+                        var panel = WebviewManager.getInstance().getPanel();
                         if (!panel) {
                             await vscode.commands.executeCommand('extension.webview');
                             panel = WebviewManager.getInstance().getPanel();
                             if (!panel) {
-                                console.error('Failed to create webview panel');
                                 return;
                             }
                         }
                         panel.webview.postMessage(message);
-                        break;
 
+                        break;
+                    case 'openModal':
+                   
+                        var panel = WebviewManager.getInstance().getPanel();
+                        if (!panel) {
+                            await vscode.commands.executeCommand('extension.webview');
+                            panel = WebviewManager.getInstance().getPanel();
+                            if (!panel) {
+                                return;
+                            }
+                        }
+
+                        if (contractFileName != '') {
+                            var files = await vscode.workspace.findFiles(`**/${contractFileName}`, "**/node_modules/**", 1);
+                            if (files.length === 0) {
+                                vscode.window.showErrorMessage("Compilation failed, check terminal output!");
+                                outputChannel.appendLine("Invalid file selected!");
+                            } else {
+                                const contractUri = files[0];
+                                const contractPath = contractUri.fsPath;
+                                try {
+                                    outputChannel.appendLine("Start compiling!");
+                                    const compiledContract: any = await multiverse.compile(
+                                        contractPath,
+                                        "contract",
+                                        "0.8.0",
+                                        false
+                                    );
+
+                                    for (const contractName in compiledContract) {
+                                        if (Object.prototype.hasOwnProperty.call(compiledContract, contractName)) {
+                                            const contractObj = compiledContract[contractName];
+                                            if (typeof contractObj === 'object' && contractObj !== null) {
+                                                if ('bin' in contractObj) {
+                                                    delete contractObj.bin;
+                                                }
+                                                if ('bin-runtime' in contractObj) {
+                                                    delete contractObj['bin-runtime'];
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    message.contractData = JSON.stringify(compiledContract);
+                                    panel.webview.postMessage(message);
+                                    vscode.window.showInformationMessage("Compilation successful!");
+                                    outputChannel.appendLine("Compilation successful!");
+                                } catch (error) {
+                                    vscode.window.showErrorMessage("Compilation failed, check terminal output!");
+                                    outputChannel.appendLine("Compilation failed:" + error);
+                                    console.error("Compilation failed:", error);
+                                }
+                            }
+                        } else {
+                            vscode.window.showErrorMessage("Compilation failed, check terminal output!");
+                            outputChannel.appendLine("No valid file selected! Select a sol file to proceed.");
+                        }
+
+                        break;
                     case 'requestModules':
-                        // Send modules to webview
                         this.sendModulesToWebview(this._modules);
                         break;
-                    // Handle other commands if needed
                 }
             },
             undefined,
@@ -609,36 +660,32 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         );
     }
 
-  public sendModulesToWebview(modules: any[]) {
-    this._modules = modules;
-    if (this._view) {
-      this._view.webview.postMessage({
-        command: "updateModules",
-        modules: modules,
-      });
-    }
-  }
-
-  private async handleOpenFile(filePath: string) {
-    try {
-      const fileUri = vscode.Uri.file(filePath);
-      const fileContent = await vscode.workspace.fs.readFile(fileUri);
-      const content = Buffer.from(fileContent).toString("utf8");
-
-      // Get the webview panel for the React app
-      let panel = WebviewManager.getInstance().getPanel();
-
-      // If the panel doesn't exist, create it
-      if (!panel) {
-        await vscode.commands.executeCommand("extension.webview");
-        panel = WebviewManager.getInstance().getPanel();
-        if (!panel) {
-          console.error("Failed to create webview panel");
-          return;
+    public sendModulesToWebview(modules: any[]) {
+        this._modules = modules;
+        if (this._view) {
+            this._view.webview.postMessage({
+                command: "updateModules",
+                modules: modules,
+            });
         }
-      }
+    }
 
-            // Send the file name and content to the React app
+    private async handleOpenFile(filePath: string) {
+        try {
+            const fileUri = vscode.Uri.file(filePath);
+            const fileContent = await vscode.workspace.fs.readFile(fileUri);
+            const content = Buffer.from(fileContent).toString("utf8");
+            let panel = WebviewManager.getInstance().getPanel();
+
+            if (!panel) {
+                await vscode.commands.executeCommand("extension.webview");
+                panel = WebviewManager.getInstance().getPanel();
+                if (!panel) {
+                    console.error("Failed to create webview panel");
+                    return;
+                }
+            }
+
             panel.webview.postMessage({
                 command: 'fileDropped',
                 fileName: path.basename(filePath),
@@ -651,19 +698,11 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    /**
-     * Retrieves the list of files in the workspace and sends them to the webview.
-     */
     private async sendFilesToWebview() {
         if (!this._view) {
             return;
         }
 
-        /**
-         * Convert a flat list of files into a tree structure.
-         * @param files Array of `vscode.Uri` objects representing files.
-         * @returns A nested tree structure.
-         */
         const getTreeStructure = (files: vscode.Uri[]) => {
             const root: any = {};
 
@@ -693,20 +732,14 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         };
 
         try {
-            // Retrieve all files and directories, excluding `node_modules`.
             const files = await vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
-
-            // Convert the list of files into a tree structure.
             const fileTree = getTreeStructure(files);
-
-            // Send the tree structure to the webview.
             this._view.webview.postMessage({
                 command: "setFiles",
                 files: fileTree,
             });
         } catch (error) {
             console.error("Error retrieving workspace files:", error);
-            // Notify the webview of the error.
             this._view.webview.postMessage({
                 command: "error",
                 message: "Failed to retrieve workspace files.",
@@ -714,10 +747,6 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    /**
-     * Opens a file in the editor based on the provided file path.
-     * @param filePath The absolute path of the file to open.
-     */
     private async openFile(filePath: string) {
         try {
             const fileUri = vscode.Uri.file(filePath);
@@ -730,35 +759,31 @@ class ColorsViewProvider implements vscode.WebviewViewProvider {
 }
 
 class WebviewManager {
-  private static instance: WebviewManager;
-  private panel: vscode.WebviewPanel | undefined;
-  private colorsViewProvider: ColorsViewProvider | undefined;
-
-  private constructor() {}
-
-  public static getInstance(): WebviewManager {
-    if (!WebviewManager.instance) {
-      WebviewManager.instance = new WebviewManager();
+    private static instance: WebviewManager;
+    private panel: vscode.WebviewPanel | undefined;
+    private colorsViewProvider: ColorsViewProvider | undefined;
+    private constructor() { }
+    public static getInstance(): WebviewManager {
+        if (!WebviewManager.instance) {
+            WebviewManager.instance = new WebviewManager();
+        }
+        return WebviewManager.instance;
     }
-    return WebviewManager.instance;
-  }
 
-  public setPanel(panel: vscode.WebviewPanel) {
-    this.panel = panel;
-  }
+    public setPanel(panel: vscode.WebviewPanel) {
+        this.panel = panel;
+    }
 
-  public getPanel(): vscode.WebviewPanel | undefined {
-    return this.panel;
-  }
+    public getPanel(): vscode.WebviewPanel | undefined {
+        return this.panel;
+    }
 
-  public setColorsViewProvider(provider: ColorsViewProvider) {
-    this.colorsViewProvider = provider;
-  }
+    public setColorsViewProvider(provider: ColorsViewProvider) {
+        this.colorsViewProvider = provider;
+    }
 
-  public getColorsViewProvider(): ColorsViewProvider | undefined {
-    return this.colorsViewProvider;
-  }
+    public getColorsViewProvider(): ColorsViewProvider | undefined {
+        return this.colorsViewProvider;
+    }
 }
-
-// This method is called when your extension is deactivated
 export function deactivate() { }

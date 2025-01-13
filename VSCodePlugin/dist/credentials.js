@@ -63,10 +63,10 @@ class Credentials {
              * An entry for the sample extension will be added under the menu to sign in. This allows quietly
              * prompting the user to sign in.
              * */
-            const session = yield vscode.authentication.getSession(GITHUB_AUTH_PROVIDER_ID, SCOPES, { createIfNone: false });
-            if (session) {
+            this.session = yield vscode.authentication.getSession(GITHUB_AUTH_PROVIDER_ID, SCOPES, { createIfNone: false });
+            if (this.session) {
                 this.octokit = new Octokit.Octokit({
-                    auth: session.accessToken,
+                    auth: this.session.accessToken,
                 });
                 return;
             }
@@ -92,15 +92,16 @@ class Credentials {
              * When the `createIfNone` flag is passed, a modal dialog will be shown asking the user to sign in.
              * Note that this can throw if the user clicks cancel.
              */
-            const session = yield vscode.authentication.getSession(GITHUB_AUTH_PROVIDER_ID, SCOPES, { createIfNone: true });
+            this.session = yield vscode.authentication.getSession(GITHUB_AUTH_PROVIDER_ID, SCOPES, { createIfNone: true });
             this.octokit = new Octokit.Octokit({
-                auth: session.accessToken,
+                auth: this.session.accessToken,
             });
             return this.octokit;
         });
     }
-    signIn() {
+    signIn(secretStorage) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
             /**
              * Octokit (https://github.com/octokit/rest.js#readme) is a library for making REST API
              * calls to GitHub. It provides convenient typings that can be helpful for using the API.
@@ -109,7 +110,18 @@ class Credentials {
              */
             const octokit = yield this.getOctokit();
             const userInfo = yield octokit.users.getAuthenticated();
+            console.log("Github access token: ", (_a = this.session) === null || _a === void 0 ? void 0 : _a.accessToken);
+            if ((_b = this.session) === null || _b === void 0 ? void 0 : _b.accessToken) {
+                secretStorage.store("github-token", this.session.accessToken);
+            }
             return userInfo;
+        });
+    }
+    getAccessToken() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.session) {
+                return this.session.accessToken;
+            }
         });
     }
 }
